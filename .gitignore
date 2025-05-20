@@ -2,6 +2,8 @@
 .assets/**
 videos_original/**
 videos_processed/**
+storage/**
+received_images/**
 
 # Python
 __pycache__/

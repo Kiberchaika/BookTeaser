@@ -1,30 +1,54 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
-import torch.nn as nn
 from PIL import Image
 import open_clip
 
 # Import the classifier model definition from the training script
-from model import FaceShapeClassifier, FACE_SHAPES
+from face_shape_classifier.model import FaceShapeClassifier, FACE_SHAPES
 
 # MODEL_PATH from current directory
 MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model.pth')
-TEST_IMAGE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test.jpg')
-
-#MODEL_PATH = "/home/k4/Projects/models_features_faces_all/face_shape_classifier_best.pth"
-
-HIDDEN_DIM = 378 #378#128#378 
-
-TEST_PATH = "/home/k4/Projects/BookTeaser/Формы лица/Женские/"
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
+
+# Global model variables
+clip_model = None
+clip_preprocessor = None
+classifier_model = None
+
+def initialize_models():
+    """Initialize the models globally"""
+    global clip_model, classifier_model, clip_preprocessor
+    
+    if clip_model is None or classifier_model is None:
+        # Determine input dimension from CLIP model
+        model, _, clip_preprocessor = open_clip.create_model_and_transforms('ViT-H-14', pretrained='metaclip_altogether')
+        model = model.to(device)
+        model.eval()
+        
+        # Get hidden state dimensions
+        model_dtype = next(model.parameters()).dtype
+        print(f"Model is using {model_dtype} precision")
+        
+        input_dim = 1024
+        hidden_dim = 378  # Using the same HIDDEN_DIM as before
+        num_classes = len(FACE_SHAPES)
+        
+        # Initialize the classifier with the same architecture
+        classifier = FaceShapeClassifier(input_dim, hidden_dim, num_classes)
+        classifier.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+        classifier.to(device)
+        classifier.eval()
+        
+        clip_model = model
+        classifier_model = classifier
 
 def make_square_with_white_background(image, target_size=244):
     """
@@ -60,121 +84,86 @@ def make_square_with_white_background(image, target_size=244):
     
     return square_image
 
-def load_model(model_path):
-    """Load the trained face shape classifier model"""
-    # First load a sample to get the input dimensions
-    # We need to initialize the model with the same parameters
+def extract_clip_features(image_path):
+    global clip_model, clip_preprocessor
     
-    # Determine input dimension from CLIP model
-    # Using the same CLIP model as in extract_hidden_states.py
-    model, _, preprocess = open_clip.create_model_and_transforms('ViT-H-14', pretrained='metaclip_altogether')
-    model = model.to(device)
-    model.eval()
-    
-    # Get hidden state dimensions
-    # For ViT-H-14, the hidden dimension will be different than ViT-B/16
-    # Check the model's weight precision to match extract_hidden_states.py
-    model_dtype = next(model.parameters()).dtype
-    print(f"Model is using {model_dtype} precision")
-    
-    input_dim = 1024
-    hidden_dim = HIDDEN_DIM
-    num_classes = len(FACE_SHAPES)
-    
-    # Initialize the classifier with the same architecture
-    classifier = FaceShapeClassifier(input_dim, hidden_dim, num_classes)
-    classifier.load_state_dict(torch.load(model_path, map_location=device))
-    classifier.to(device)
-    classifier.eval()
-    
-    return model, classifier, preprocess
-
-def extract_clip_features(image_path, clip_model, preprocess):
     """Extract CLIP features from an image using standard forward pass"""
-    # Load and preprocess the image
-    try:
-        image = Image.open(image_path).convert('RGB')
+    # Load and clip_preprocessor the image
+    
+    image = Image.open(image_path).convert('RGB')
 
-        # Make image square with white background and resize
-        image = make_square_with_white_background(image, target_size=244)
+    # Make image square with white background and resize
+    image = make_square_with_white_background(image, target_size=244)
+    
+    image_input = clip_preprocessor(image).unsqueeze(0).to(device)
+    
+    # Match the model precision
+    model_dtype = next(clip_model.parameters()).dtype
+    image_input = image_input.to(dtype=model_dtype)
+    
+    # Extract features using standard forward pass
+    with torch.no_grad():
+        image_features = clip_model.encode_image(image_input)
         
-        image_input = preprocess(image).unsqueeze(0).to(device)
+        # Flatten the features to match the classifier's expected input
+        hidden_state = image_features.view(image_features.size(0), -1)
         
-        # Match the model precision
-        model_dtype = next(clip_model.parameters()).dtype
-        image_input = image_input.to(dtype=model_dtype)
-        
-        # Extract features using standard forward pass
-        with torch.no_grad():
-            image_features = clip_model.encode_image(image_input)
-            
-            # Flatten the features to match the classifier's expected input
-            hidden_state = image_features.view(image_features.size(0), -1)
-            
-        return hidden_state
-    except Exception as e:
-        print(f"Error processing image {image_path}: {str(e)}")
+    return hidden_state
+
+def preprocess_image(image_path):
+    """
+    Process an image and return the predicted face shape class
+    Returns:
+        str: The predicted face shape class
+    """
+    global classifier_model, clip_preprocessor
+
+    # Extract features
+    features = extract_clip_features(image_path)
+    
+    if features is None:
         return None
+    
+    # Predict face shape
+    with torch.no_grad():
+        outputs = classifier_model(features)
+        _, predicted = torch.max(outputs, 1)
+        predicted_class_idx = predicted.item()
+        predicted_class = FACE_SHAPES[predicted_class_idx]
+    
+    return predicted_class
 
-def unload_model(clip_model, classifier_model):
+def unload_model():
     """Unload models and free up memory"""
-    # Move models to CPU first
-    clip_model.cpu()
-    classifier_model.cpu()
+    global clip_model, classifier_model
     
-    # Delete models
-    del clip_model
-    del classifier_model
-    
-    # Clear CUDA cache if available
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    if clip_model is not None:
+        # Move models to CPU first
+        clip_model.cpu()
+        classifier_model.cpu()
+        
+        # Delete models
+        del clip_model
+        del classifier_model
+        
+        # Clear CUDA cache if available
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
-def main():
-    # Check if model exists
-    if not os.path.exists(MODEL_PATH):
-        print(f"Error: Model not found at {MODEL_PATH}")
-        return
-    
-    # Load models
-    print("Loading models...")
-    clip_model, classifier_model, preprocess = load_model(MODEL_PATH)
-    
-    try:
-        # Process multiple test images
-        for i in range(1, 6):
-            test_image_path = os.path.join(TEST_PATH, f"{i}.JPG")
-            if not os.path.exists(test_image_path):
-                print(f"Error: Test image not found at {test_image_path}")
-                continue
-                
-            print(f"\nProcessing image: {test_image_path}")
-            features = extract_clip_features(test_image_path, clip_model, preprocess)
-            
-            if features is None:
-                continue
-                
-            # Predict face shape
-            with torch.no_grad():
-                outputs = classifier_model(features)
-                _, predicted = torch.max(outputs, 1)
-                predicted_class_idx = predicted.item()
-                predicted_class = FACE_SHAPES[predicted_class_idx]
-            
-            # Print predicted class
-            print(f"Predicted face shape: {predicted_class}")
-            
-            # Print confidence scores for all classes
-            softmax = nn.Softmax(dim=1)
-            probabilities = softmax(outputs)
-            
-            print("Confidence scores:")
-            for i, shape in enumerate(FACE_SHAPES):
-                print(f"{shape}: {probabilities[0][i].item():.4f}")
-    finally:
-        # Always unload models, even if an error occurs
-        print("\nUnloading models...")
-        unload_model(clip_model, classifier_model)
+        clip_model = None
+        classifier_model = None
+
 
 if __name__ == "__main__":
-    main() 
+    # Example usage
+    # path to test.jpg in the same directory as the script
+    test_image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test.jpg')
+
+    # Initialize models when the module is imported
+    initialize_models()
+
+    if os.path.exists(test_image_path):
+        result = preprocess_image(test_image_path)
+        print(f"Predicted face shape: {result}") 
+
+    unload_model()

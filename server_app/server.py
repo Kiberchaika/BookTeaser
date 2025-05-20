@@ -1,9 +1,12 @@
+import os
+import sys
 import asyncio
 import websockets
 import json
 import base64
 from datetime import datetime
 import os
+from face_shape_classifier.inference import initialize_models, preprocess_image, unload_model
 
 # Create directory for saving images if it doesn't exist
 SAVE_DIR = "received_images"
@@ -37,19 +40,34 @@ async def handle_websocket(websocket):
                     print(f"Gender: {data['gender']}")
                     print(f"Selected Scene: {data['selectedScene']}")
                     print(f"Image saved as: {filename}")
+
+
+                    # Initialize models at startup
+                    initialize_models()
+
+                    # Get face shape classification
+                    face_shape = preprocess_image(filename)
+                    print(f"Predicted face shape: {face_shape}")
                     
+                    # Clean up models when server shuts down
+                    unload_model()
+
+                    
+
+
+
                     # Wait for 5 seconds
                     print("Waiting 5 seconds...")
                     await asyncio.sleep(5)
                     
-                    # Send test URL back to client
-                    test_url = "https://example.com/test-result"
+                    # Send result back to client
                     await websocket.send(json.dumps({
                         "status": "success",
-                        "message": "Face capture received and saved successfully",
-                        "resultUrl": test_url
+                        "message": "Face capture received and processed successfully",
+                        "faceShape": face_shape,
+                        "resultUrl": "https://example.com/test-result"
                     }))
-                    print(f"Sent test URL: {test_url}")
+                    print(f"Sent face shape result: {face_shape}")
                 elif data['type'] == 'test_connection':
                     # Handle test connection message
                     print(f"Received test connection from client")
@@ -90,7 +108,7 @@ async def main():
         compression=None  # Disable compression for better performance
     )
     
-    print("WebSocket server started on ws://localhost:8765")
+    print("WebSocket server started")
     await server.wait_closed()
 
 if __name__ == "__main__":
