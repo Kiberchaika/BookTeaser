@@ -8,7 +8,7 @@
             userSettings: {
                 ...state.userSettings,
                 gender: "female",
-                selectedScene: character
+                character: character
             }
         }));
         

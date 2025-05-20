@@ -47,7 +47,7 @@
             <div class="state-info">
                 <div><strong>Current Screen:</strong> {$appState.currentScreen}</div>
                 <div><strong>Gender:</strong> {$appState.userSettings.gender || 'Not selected'}</div>
-                <div><strong>Scene:</strong> {$appState.userSettings.selectedScene || 'Not selected'}</div>
+                <div><strong>Character:</strong> {$appState.userSettings.character || 'Not selected'}</div>
                 <div><strong>Photo:</strong> {$appState.photo ? 'Captured' : 'None'}</div>
                 <div><strong>Progress:</strong> {$appState.processingProgress}%</div>
                 <div><strong>WebSocket:</strong> {$wsConnection ? 'Connected' : 'Disconnected'}</div>

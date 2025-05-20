@@ -2,13 +2,13 @@
     import { appState, navigateTo, navigateBack } from '$lib/stores/appStore.js';
     
     function handleCharacterSelect(character) {
-        // Store the selected scene in the app state
+        // Store the selected character in the app state
         appState.update(state => ({
             ...state,
             userSettings: {
                 ...state.userSettings,
                 gender: "male",
-                selectedScene: character
+                character: character
             }
         }));
         

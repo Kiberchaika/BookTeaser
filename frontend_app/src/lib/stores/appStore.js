@@ -9,7 +9,7 @@ export const appState = writable({
     currentScreen: 'welcome', // Current screen being displayed
     userSettings: {
         gender: null, // User's selected gender
-        selectedScene: null, // Selected story scene
+        character: null, // Selected story scene
     },
     photo: null, // User's photo data
     faceShape: null, // Face shape 

@@ -22,8 +22,8 @@
     $: progressCircularStyle = currentState === 2 ? '' : 'display: none;';
     $: backgroundImageStyle = `background-image: url('screens/camera/text${currentState + 1}.png');`;
     $: characterIconSrc = $appState.userSettings.gender === 'female' 
-        ? `screens/selectionWoman/${$appState.userSettings.selectedScene}.png`
-        : `screens/selectionMan/${$appState.userSettings.selectedScene}.png`;
+        ? `screens/selectionWoman/${$appState.userSettings.character}.png`
+        : `screens/selectionMan/${$appState.userSettings.character}.png`;
     
     // Start counter when currentState becomes 1
     $: if (currentState === 1 && counterComponent) {
@@ -93,7 +93,7 @@
                         type: 'process_face',
                         face_image: dataUrl,
                         gender: $appState.userSettings.gender,
-                        selectedScene: $appState.userSettings.selectedScene
+                        character: $appState.userSettings.character
                     };
                     ws.send(JSON.stringify(message));
                     console.log("Face crop and settings sent via WebSocket");
@@ -118,7 +118,7 @@
             ...state,
             userSettings: {
                 ...state.userSettings,
-                selectedScene: character
+                character: character
             }
         }));
         
@@ -188,7 +188,7 @@
             <Webcam bind:this={webcamComponent} on:faceCenter={handleFaceCenter} />
         </div>
         <Counter bind:this={counterComponent} on:complete={handleCounterComplete} />
-        <img src={characterIconSrc} alt={$appState.userSettings.selectedScene} class="character-icon" style={characterIconStyle} />
+        <img src={characterIconSrc} alt={$appState.userSettings.character} class="character-icon" style={characterIconStyle} />
         <div class="tip-icon tip1" style={tipsStyle}></div>
         <div class="tip-icon tip2" style={tipsStyle}></div>
         <div class="tip-icon tip3" style={tipsStyle}></div>
