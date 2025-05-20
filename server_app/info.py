@@ -1,10 +1,9 @@
-
 shapes = {
-    1: "oblong",
-    2: "oval",
-    3: "round",
-    4: "square",
-    5: "triangle",
+    "oblong": 1,
+    "oval": 2,
+    "round": 3,
+    "square": 4,
+    "triangle": 5,
 }
 
 characters = {

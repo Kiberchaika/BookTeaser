@@ -8,6 +8,9 @@ from datetime import datetime
 import os
 from face_shape_classifier.inference import initialize_models, preprocess_image, unload_model
 
+from info import characters, shapes
+
+                
 # Create directory for saving images if it doesn't exist
 SAVE_DIR = "received_images"
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -38,7 +41,7 @@ async def handle_websocket(websocket):
                     # Log the received data
                     print(f"Received face capture:")
                     print(f"Gender: {data['gender']}")
-                    print(f"Selected Scene: {data['selectedScene']}")
+                    print(f"Selected Character: {data['character']}")
                     print(f"Image saved as: {filename}")
 
 
@@ -51,6 +54,15 @@ async def handle_websocket(websocket):
                     
                     # Clean up models when server shuts down
                     unload_model()
+
+
+                    # Get character info
+                    character_info = characters[data['character']]
+                    print(f"Selected character: {character_info}")  
+
+                    # find index of face_shape in shapes
+                    face_shape_index = list(shapes.keys()).index(face_shape)
+                    print(f"Face shape index: {face_shape_index}")
 
                     
 
