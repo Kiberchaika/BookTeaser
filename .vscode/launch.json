@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against localhost",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/my-app",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/src/*"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch SvelteKit",
+      "preLaunchTask": "generate-assets",
+      "program": "${workspaceFolder}/my-app/node_modules/vite/bin/vite.js",
+      "args": ["dev"],
+      "cwd": "${workspaceFolder}/my-app",
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/my-app/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to SvelteKit",
+      "port": 9229,
+      "restart": true,
+      "sourceMaps": true
+    }
+  ]
+} 
