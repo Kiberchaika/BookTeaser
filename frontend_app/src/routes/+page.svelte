@@ -39,7 +39,8 @@
         // Initialize WebSocket connection
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsHost = window.location.hostname;
-        const ws = initWebSocket(`${wsProtocol}//${wsHost}:7779`);
+        //const ws = initWebSocket(`${wsProtocol}//${wsHost}:7779`);
+        const ws = initWebSocket(`ws://192.168.100.250:7779`);
 
         return () => {
             // Clean up WebSocket connection when component is destroyed
