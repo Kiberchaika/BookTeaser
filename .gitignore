@@ -2,3 +2,11 @@
 .assets/**
 videos_original/**
 videos_processed/**
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz

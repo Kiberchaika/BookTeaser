@@ -1,64 +1,30 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 import torch.nn as nn
 from PIL import Image
-import sys
-import numpy as np
-from torchvision import transforms
 import open_clip
-from ffhq_dataset.face_alignment import image_align
-from ffhq_dataset.landmarks_detector import LandmarksDetector
-from keras.utils import get_file
-import bz2
-import tempfile
 
 # Import the classifier model definition from the training script
-from train_face_shape_classifier import FaceShapeClassifier, FACE_SHAPES
+from model import FaceShapeClassifier, FACE_SHAPES
 
-# Set paths
-MODEL_PATH = "/home/k4/Projects/BookFace_2025/models_features_faces_all/face_shape_classifier_best.pth"
-TEST_IMAGE_PATH = "/home/k4/Projects/BookFace_2025/shape_faces_test/Мужчина/3/1.JPG"
-TEST_IMAGE_PATH = "/home/k4/Projects/BookFace_2025/shape_faces_test/Женщина/x2.JPG"
+# MODEL_PATH from current directory
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model.pth')
+TEST_IMAGE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test.jpg')
+
+#MODEL_PATH = "/home/k4/Projects/models_features_faces_all/face_shape_classifier_best.pth"
+
+HIDDEN_DIM = 378 #378#128#378 
+
+TEST_PATH = "/home/k4/Projects/BookTeaser/Формы лица/Женские/"
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
-
-# Landmarks model URL
-LANDMARKS_MODEL_URL = 'http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2'
-
-def unpack_bz2(src_path):
-    data = bz2.BZ2File(src_path).read()
-    dst_path = src_path[:-4]
-    with open(dst_path, 'wb') as fp:
-        fp.write(data)
-    return dst_path
-
-def align_face(image_path, output_size=512, x_scale=1, y_scale=1, em_scale=0.1, alpha=False):
-    """Aligns a face in an image using landmarks detection"""
-    # Download and unpack landmarks model
-    landmarks_model_path = unpack_bz2(get_file('shape_predictor_68_face_landmarks.dat.bz2',
-                                             LANDMARKS_MODEL_URL, cache_subdir='temp'))
-    
-    # Initialize landmarks detector
-    landmarks_detector = LandmarksDetector(landmarks_model_path)
-    
-    # Create a temporary file for the aligned image
-    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
-        aligned_face_path = tmp_file.name
-    
-    # Detect landmarks and align the face
-    for i, face_landmarks in enumerate(landmarks_detector.get_landmarks(image_path), start=1):
-        print('Starting face alignment...')
-        image_align(image_path, aligned_face_path, face_landmarks, 
-                   output_size=output_size, x_scale=x_scale, 
-                   y_scale=y_scale, em_scale=em_scale, alpha=alpha)
-        print(f'Face aligned and saved to {aligned_face_path}')
-        break  # Only process the first face
-    
-    return aligned_face_path
 
 def make_square_with_white_background(image, target_size=244):
     """
@@ -101,8 +67,6 @@ def load_model(model_path):
     
     # Determine input dimension from CLIP model
     # Using the same CLIP model as in extract_hidden_states.py
-    #model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
-    #model, _, preprocess = open_clip.create_model_and_transforms('ViT-H-14-quickgelu', pretrained='metaclip_fullcc')
     model, _, preprocess = open_clip.create_model_and_transforms('ViT-H-14', pretrained='metaclip_altogether')
     model = model.to(device)
     model.eval()
@@ -113,9 +77,8 @@ def load_model(model_path):
     model_dtype = next(model.parameters()).dtype
     print(f"Model is using {model_dtype} precision")
     
-    # Typical input dimension for ViT models
-    input_dim = 1024 #1280 * 16 * 16  # Will be flattened in the classifier
-    hidden_dim = 378#1024 
+    input_dim = 1024
+    hidden_dim = HIDDEN_DIM
     num_classes = len(FACE_SHAPES)
     
     # Initialize the classifier with the same architecture
@@ -168,53 +131,50 @@ def unload_model(clip_model, classifier_model):
         torch.cuda.empty_cache()
 
 def main():
-    # Check if file exists
-    if not os.path.exists(TEST_IMAGE_PATH):
-        print(f"Error: Test image not found at {TEST_IMAGE_PATH}")
-        return
-        
+    # Check if model exists
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model not found at {MODEL_PATH}")
         return
-    
-    # Align the face first
-    print(f"Aligning face in image: {TEST_IMAGE_PATH}")
-    aligned_image_path = TEST_IMAGE_PATH#align_face(TEST_IMAGE_PATH, output_size=512)
     
     # Load models
     print("Loading models...")
     clip_model, classifier_model, preprocess = load_model(MODEL_PATH)
     
     try:
-        # Process the aligned image
-        print(f"Processing aligned image: {aligned_image_path}")
-        features = extract_clip_features(aligned_image_path, clip_model, preprocess)
+        # Process multiple test images
+        for i in range(1, 6):
+            test_image_path = os.path.join(TEST_PATH, f"{i}.JPG")
+            if not os.path.exists(test_image_path):
+                print(f"Error: Test image not found at {test_image_path}")
+                continue
+                
+            print(f"\nProcessing image: {test_image_path}")
+            features = extract_clip_features(test_image_path, clip_model, preprocess)
             
-        # Predict face shape
-        with torch.no_grad():
-            outputs = classifier_model(features)
-            _, predicted = torch.max(outputs, 1)
-            predicted_class_idx = predicted.item()
-            predicted_class = FACE_SHAPES[predicted_class_idx]
-        
-        # Print predicted class
-        print(f"Predicted face shape: {predicted_class}")
-        
-        # Print confidence scores for all classes
-        softmax = nn.Softmax(dim=1)
-        probabilities = softmax(outputs)
-        
-        print("\nConfidence scores:")
-        for i, shape in enumerate(FACE_SHAPES):
-            print(f"{shape}: {probabilities[0][i].item():.4f}")
+            if features is None:
+                continue
+                
+            # Predict face shape
+            with torch.no_grad():
+                outputs = classifier_model(features)
+                _, predicted = torch.max(outputs, 1)
+                predicted_class_idx = predicted.item()
+                predicted_class = FACE_SHAPES[predicted_class_idx]
+            
+            # Print predicted class
+            print(f"Predicted face shape: {predicted_class}")
+            
+            # Print confidence scores for all classes
+            softmax = nn.Softmax(dim=1)
+            probabilities = softmax(outputs)
+            
+            print("Confidence scores:")
+            for i, shape in enumerate(FACE_SHAPES):
+                print(f"{shape}: {probabilities[0][i].item():.4f}")
     finally:
         # Always unload models, even if an error occurs
-        print("Unloading models...")
+        print("\nUnloading models...")
         unload_model(clip_model, classifier_model)
-    
-    # Clean up temporary file
-    #if os.path.exists(aligned_image_path):
-    #    os.unlink(aligned_image_path)
 
 if __name__ == "__main__":
     main() 

@@ -5,9 +5,9 @@ import cv2
 import numpy as np
 
 # Set GPU 1 as visible
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-from server_threaded import (
+from inference_threaded import (
     download_all_models,
     initialize_sessions_and_globals,
     get_face_embedding,

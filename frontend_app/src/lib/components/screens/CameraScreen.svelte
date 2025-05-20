@@ -86,18 +86,14 @@
                 
                 console.log("Face crop saved successfully");
                 
-
-
                 // Send face crop and user settings via WebSocket
                 const ws = $wsConnection;
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     const message = {
-                        type: 'face_capture',
-                        faceImage: dataUrl,
-                        userSettings: {
-                            gender: $appState.userSettings.gender,
-                            selectedScene: $appState.userSettings.selectedScene
-                        }
+                        type: 'process_face',
+                        face_image: dataUrl,
+                        gender: $appState.userSettings.gender,
+                        selectedScene: $appState.userSettings.selectedScene
                     };
                     ws.send(JSON.stringify(message));
                     console.log("Face crop and settings sent via WebSocket");

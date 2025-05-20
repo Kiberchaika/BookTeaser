@@ -17,9 +17,9 @@ async def handle_websocket(websocket):
                 # Parse the JSON message
                 data = json.loads(message)
                 
-                if data['type'] == 'face_capture':
+                if data['type'] == 'process_face':
                     # Extract the base64 image data (remove the data URL prefix)
-                    image_data = data['faceImage'].split(',')[1]
+                    image_data = data['face_image'].split(',')[1]
                     
                     # Decode base64 image
                     image_bytes = base64.b64decode(image_data)
@@ -34,8 +34,8 @@ async def handle_websocket(websocket):
                     
                     # Log the received data
                     print(f"Received face capture:")
-                    print(f"Gender: {data['userSettings']['gender']}")
-                    print(f"Selected Scene: {data['userSettings']['selectedScene']}")
+                    print(f"Gender: {data['gender']}")
+                    print(f"Selected Scene: {data['selectedScene']}")
                     print(f"Image saved as: {filename}")
                     
                     # Wait for 5 seconds
@@ -81,7 +81,7 @@ async def main():
     server = await websockets.serve(
         handle_websocket,
         "0.0.0.0",
-        8765,
+        7779,
         ping_interval=None,  # Disable ping to prevent connection issues
         ping_timeout=None,
         close_timeout=None,

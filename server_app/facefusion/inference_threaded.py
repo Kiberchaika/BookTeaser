@@ -999,7 +999,7 @@ if __name__ == "__main__":
             use_eye_mask=protect_eyes,
             temp_dir_base="video_temp", # Optional: specify base for temp frame folders
             cache_dir="video_frame_cache", # Optional: specify base for frame data caches
-            num_threads=2 # Adjust based on your CPU cores
+            num_threads=4 # Adjust based on your CPU cores
         )
 
     # Example of unloading models
