@@ -4,6 +4,7 @@ videos_original/**
 videos_processed/**
 storage/**
 received_images/**
+tmp.mp4
 
 # Python
 __pycache__/

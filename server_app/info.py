@@ -7,36 +7,17 @@ shapes = {
     5: "triangle",
 }
 
-'''
-dartanyan
-don_kihot
-ostap_bender
-olesya
-ellochka
-tatyana
-'''
-
 characters = {
-    "test": {
-        "folder": "Тестовый персонаж",
-        "model": "inswapper",
-        "scenes": {
-            1: {
-                "replace_face": True,
-                "eyes": True
-            },
-        }
-    },
     "ostap_bender": {
         "folder": "Остап Бендер",
-        "model": "inswapper",
+        "swapper": "inswapper",
         "scenes": {
             1: {
                 "replace_face": False
             },
             2: {
                 "replace_face": True,
-                "eyes": True
+                "protect_eyes": False
             },
             3: {
                 "replace_face": False
@@ -58,7 +39,7 @@ characters = {
             },
             9: {
                 "replace_face": True,
-                "eyes": True
+                "protect_eyes": False
             },
             10: {
                 "replace_face": False
