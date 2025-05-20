@@ -4,7 +4,7 @@
 **Этап 1: Настройка проекта и базовой инфраструктуры - Implemented**
 
 1. Инициализация и конфигурация проекта
-Создание Svelte проекта: npm create svelte@latest my-app
+Создание Svelte проекта: npm create svelte@latest frontend_app
 Добавление скриптов для разработки и сборки
 Установка зависимостей: npm install svelte-motion three threlte simple-keyboard qrcode websocket
 
@@ -23,10 +23,10 @@
 Панель для отладки с кнопками переходов между всеми экранами, должна находиться всегда справа вверху, поверх всех экранов
 
 **Результат Этапа 1:**
-- Созданы файлы: my-app/src/lib/stores/appStore.js - хранилище состояния приложения
-- Созданы файлы: my-app/src/lib/styles/global.css - глобальные стили
-- Созданы файлы: my-app/src/lib/components/DebugPanel.svelte - панель отладки
-- Обновлен файл: my-app/src/routes/+page.svelte - основной компонент приложения с навигацией
+- Созданы файлы: frontend_app/src/lib/stores/appStore.js - хранилище состояния приложения
+- Созданы файлы: frontend_app/src/lib/styles/global.css - глобальные стили
+- Созданы файлы: frontend_app/src/lib/components/DebugPanel.svelte - панель отладки
+- Обновлен файл: frontend_app/src/routes/+page.svelte - основной компонент приложения с навигацией
 - Установлены зависимости: svelte-motion, three, threlte, simple-keyboard, qrcode, websocket
 
 Этап 2: Разработка основных экранов и компонентов

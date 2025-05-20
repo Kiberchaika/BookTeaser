@@ -127,14 +127,13 @@ def load_model(model_path):
     return model, classifier, preprocess
 
 def extract_clip_features(image_path, clip_model, preprocess):
-    """Extract CLIP features from an image using forward_intermediates"""
+    """Extract CLIP features from an image using standard forward pass"""
     # Load and preprocess the image
     try:
         image = Image.open(image_path).convert('RGB')
 
         # Make image square with white background and resize
         image = make_square_with_white_background(image, target_size=244)
-        #image.save("test.jpg")
         
         image_input = preprocess(image).unsqueeze(0).to(device)
         
@@ -142,31 +141,31 @@ def extract_clip_features(image_path, clip_model, preprocess):
         model_dtype = next(clip_model.parameters()).dtype
         image_input = image_input.to(dtype=model_dtype)
         
-        # Extract features
+        # Extract features using standard forward pass
         with torch.no_grad():
-            # Extract hidden states using forward_intermediates similar to extract_hidden_states.py
-            batch_output = clip_model.forward_intermediates(
-                image=image_input,
-                image_indices=None,
-                stop_early=False,
-                normalize=False,
-                normalize_intermediates=False,
-                image_output_fmt='NCHW',
-                image_output_extra_tokens=True
-            )
+            image_features = clip_model.encode_image(image_input)
             
-            # Get last hidden states
-            #last_hidden_states = batch_output["image_intermediates"][-1]
-            last_hidden_states = batch_output["image_features"]#batch_output["image_intermediates"][-1]
-         
-            # Flatten the hidden states to match the classifier's expected input
-            # Shape is typically [1, 1280, 16, 16]
-            hidden_state = last_hidden_states.view(last_hidden_states.size(0), -1)
+            # Flatten the features to match the classifier's expected input
+            hidden_state = image_features.view(image_features.size(0), -1)
             
         return hidden_state
     except Exception as e:
         print(f"Error processing image {image_path}: {str(e)}")
         return None
+
+def unload_model(clip_model, classifier_model):
+    """Unload models and free up memory"""
+    # Move models to CPU first
+    clip_model.cpu()
+    classifier_model.cpu()
+    
+    # Delete models
+    del clip_model
+    del classifier_model
+    
+    # Clear CUDA cache if available
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 def main():
     # Check if file exists
@@ -186,27 +185,32 @@ def main():
     print("Loading models...")
     clip_model, classifier_model, preprocess = load_model(MODEL_PATH)
     
-    # Process the aligned image
-    print(f"Processing aligned image: {aligned_image_path}")
-    features = extract_clip_features(aligned_image_path, clip_model, preprocess)
+    try:
+        # Process the aligned image
+        print(f"Processing aligned image: {aligned_image_path}")
+        features = extract_clip_features(aligned_image_path, clip_model, preprocess)
+            
+        # Predict face shape
+        with torch.no_grad():
+            outputs = classifier_model(features)
+            _, predicted = torch.max(outputs, 1)
+            predicted_class_idx = predicted.item()
+            predicted_class = FACE_SHAPES[predicted_class_idx]
         
-    # Predict face shape
-    with torch.no_grad():
-        outputs = classifier_model(features)
-        _, predicted = torch.max(outputs, 1)
-        predicted_class_idx = predicted.item()
-        predicted_class = FACE_SHAPES[predicted_class_idx]
-    
-    # Print predicted class
-    print(f"Predicted face shape: {predicted_class}")
-    
-    # Print confidence scores for all classes
-    softmax = nn.Softmax(dim=1)
-    probabilities = softmax(outputs)
-    
-    print("\nConfidence scores:")
-    for i, shape in enumerate(FACE_SHAPES):
-        print(f"{shape}: {probabilities[0][i].item():.4f}")
+        # Print predicted class
+        print(f"Predicted face shape: {predicted_class}")
+        
+        # Print confidence scores for all classes
+        softmax = nn.Softmax(dim=1)
+        probabilities = softmax(outputs)
+        
+        print("\nConfidence scores:")
+        for i, shape in enumerate(FACE_SHAPES):
+            print(f"{shape}: {probabilities[0][i].item():.4f}")
+    finally:
+        # Always unload models, even if an error occurs
+        print("Unloading models...")
+        unload_model(clip_model, classifier_model)
     
     # Clean up temporary file
     #if os.path.exists(aligned_image_path):

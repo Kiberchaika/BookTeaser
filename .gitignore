@@ -1,3 +1,4 @@
 # Assets and Media
 .assets/**
-videos_src/**
+videos_original/**
+videos_processed/**

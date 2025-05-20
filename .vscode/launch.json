@@ -2,29 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "chrome",
-      "request": "launch",
-      "name": "Launch Chrome against localhost",
-      "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/frontend_app",
-      "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/src/*"
-      }
-    },
-    {
       "type": "node",
       "request": "launch",
       "name": "Launch SvelteKit",
       "preLaunchTask": "generate-assets",
-      "program": "${workspaceFolder}/frontend_app/node_modules/vite/bin/vite.js",
-      "args": ["dev"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
       "cwd": "${workspaceFolder}/frontend_app",
       "sourceMaps": true,
       "resolveSourceMapLocations": [
         "${workspaceFolder}/frontend_app/**",
         "!**/node_modules/**"
-      ]
+      ],
+      "console": "integratedTerminal",
+      "outputCapture": "std"
     },
     {
       "type": "node",
@@ -33,6 +24,17 @@
       "port": 9229,
       "restart": true,
       "sourceMaps": true
-    }
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against localhost",
+      "url": "http://localhost:7778",
+      "webRoot": "${workspaceFolder}/frontend_app",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/src/*"
+      }
+    },
   ]
 } 

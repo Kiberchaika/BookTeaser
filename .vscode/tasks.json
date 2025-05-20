@@ -5,7 +5,7 @@
       "label": "dev",
       "type": "npm",
       "script": "dev",
-      "path": "my-app/",
+      "path": "frontend_app/",
       "problemMatcher": [],
       "group": {
         "kind": "build",
@@ -17,7 +17,7 @@
       "label": "build",
       "type": "npm",
       "script": "build",
-      "path": "my-app/",
+      "path": "frontend_app/",
       "problemMatcher": [],
       "detail": "vite build"
     },
@@ -25,7 +25,7 @@
       "label": "preview",
       "type": "npm",
       "script": "preview",
-      "path": "my-app/",
+      "path": "frontend_app/",
       "problemMatcher": [],
       "detail": "vite preview"
     },
@@ -33,9 +33,14 @@
       "label": "generate-assets",
       "type": "shell",
       "command": "node",
-      "args": ["generateAssetManifest.js"],
-      "options": {
-        "cwd": "${workspaceFolder}/my-app"
+      "args": ["${workspaceFolder}/frontend_app/generateAssetManifest.js"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
       },
       "problemMatcher": []
     }
