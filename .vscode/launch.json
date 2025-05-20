@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "Launch Chrome against localhost",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/my-app",
+      "webRoot": "${workspaceFolder}/frontend_app",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/src/*"
@@ -17,12 +17,12 @@
       "request": "launch",
       "name": "Launch SvelteKit",
       "preLaunchTask": "generate-assets",
-      "program": "${workspaceFolder}/my-app/node_modules/vite/bin/vite.js",
+      "program": "${workspaceFolder}/frontend_app/node_modules/vite/bin/vite.js",
       "args": ["dev"],
-      "cwd": "${workspaceFolder}/my-app",
+      "cwd": "${workspaceFolder}/frontend_app",
       "sourceMaps": true,
       "resolveSourceMapLocations": [
-        "${workspaceFolder}/my-app/**",
+        "${workspaceFolder}/frontend_app/**",
         "!**/node_modules/**"
       ]
     },
