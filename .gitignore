@@ -4,8 +4,8 @@ videos_original/**
 videos_processed/**
 storage/**
 received_images/**
+tmp/**
 tmp.mp4
-
 # Python
 __pycache__/
 *.pyc
