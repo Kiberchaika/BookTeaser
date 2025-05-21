@@ -38,6 +38,10 @@ characters = {
                 "replace_face": False
             },
             9: {
+                "replace_face": False
+            },
+            10: {
+                "replace_face": False
             },
         }
     },
@@ -90,6 +94,9 @@ characters = {
             14: {
                 "replace_face": False
             },
+            15: {
+                "replace_face": False
+            },
         }
     },
     "olesya": {
@@ -123,8 +130,7 @@ characters = {
                 "replace_face": False
             },
             9: {
-                "replace_face": True,
-                "protect_eyes": False
+                "replace_face": False
             },
             10: {
                 "replace_face": False
@@ -137,6 +143,9 @@ characters = {
                 "replace_face": False
             },
             13: {
+                "replace_face": False
+            },
+            14: {
                 "replace_face": False
             },
         }
@@ -178,6 +187,9 @@ characters = {
                 "replace_face": False
             },
             11: {
+                "replace_face": False
+            },
+            12: {
                 "replace_face": False
             },
         }
@@ -225,6 +237,9 @@ characters = {
             12: {
                 "replace_face": False
             },
+            13: {
+                "replace_face": False
+            },
         }
     },
     "ellochka": {
@@ -265,6 +280,9 @@ characters = {
                 "replace_face": False
             },
             11: {
+                "replace_face": False
+            }, 
+            12: {
                 "replace_face": False
             },
         }
