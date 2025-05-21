@@ -55,7 +55,7 @@ class FileUploader:
         """Upload file to external server."""
         try:
             with open(filepath, 'rb') as f:
-                files = {'file': f}
+                files = {'video': f}
                 response = requests.post(f"{self.server_url}/upload", files=files)
                 if response.status_code == 200:
                     print(f"Successfully uploaded {filepath}")

@@ -26,9 +26,8 @@
             margin: 0
         }; 
         
-        qrCodeUrl = await QRCode.toDataURL('http://81.94.158.96:7781/' + currentResultUrl, options);
-        
-        console.log(' appState.resultUrl!!x!',  currentResultUrl);
+        qrCodeUrl = await QRCode.toDataURL('http://81.94.158.96:7781/view/' + currentResultUrl, options);
+        console.log('qrCodeUrl', qrCodeUrl);
     }
     
     function updateVideo() {
