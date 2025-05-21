@@ -10,7 +10,7 @@
     let isVideoReady = false;
     let faceCount = 0;
     let debugInfo = "";
-    let isShowDebugInfo = true;
+    let isShowDebugInfo = false;
     let stream;
     let hasFaceNearCenter = false;
     let isStopped = false;
@@ -67,7 +67,10 @@
           video: {
             facingMode: "user",
             width: { ideal: 1920  },
-            height: { ideal: 1080 }
+            height: { ideal: 1080 },
+            //exposureMode: { ideal: 'continuous' },
+            // autoExposureCompensation: true,
+            // exposureTime: 100000
           },
           audio: false
         });

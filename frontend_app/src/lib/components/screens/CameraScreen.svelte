@@ -16,8 +16,8 @@
     let faceCrop = null;
     
     $: characterIconStyle = currentState === 0 ? 'opacity: 0;' : 'opacity: 1;';
-    $: stopBtnStyle = currentState === 1 ? '' : 'display: none;';
-    $: startBtnStyle = currentState === 0 ? `transform: translateX(-50%) scale(${isFaceNearCenter ? 1 : 0});` : 'display: none;';
+    $: stopBtnStyle = currentState !== 2 ? '' : 'display: none;';
+    $: startBtnStyle = currentState === 0 ? `transform: translateX(-50%) scale(1);` : 'display: none;';
     $: tipsStyle = currentState === 0 ? '' : 'display: none;';
     $: progressCircularStyle = currentState === 2 ? '' : 'display: none;';
     $: backgroundImageStyle = `background-image: url('screens/camera/text${currentState + 1}.png');`;
@@ -160,6 +160,8 @@
 
         // If face was near center but is no longer, reset state and replay animations
         if (currentState !== 0 && !isFaceNearCenter) {
+            return; // temporary method to prevent reset, don't change this line
+
             currentState = 0;
 
             // Reset counter if it exists
@@ -313,7 +315,7 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        top: 2700px;
+        top: 2790px;
     }
     
     .stop-btn:active {
