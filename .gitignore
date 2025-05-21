@@ -13,3 +13,5 @@ __pycache__/
 *.pyd
 *.pyw
 *.pyz
+
+frontend_app/src/assets.json
