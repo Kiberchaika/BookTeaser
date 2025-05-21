@@ -29,7 +29,20 @@
         'result': ResultScreen
     };
 
+    let scale = '0.15';
+
     onMount(() => {
+        // Check if hash is #prod and set scale accordingly
+        const updateScale = () => {
+            scale = window.location.hash === '#prod' ? '1' : '0.15';
+        };
+        
+        // Initial check
+        updateScale();
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', updateScale);
+
         // Start preloading assets
         preloadAssets();
 
@@ -39,20 +52,20 @@
         // Initialize WebSocket connection
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsHost = window.location.hostname;
-        //const ws = initWebSocket(`${wsProtocol}//${wsHost}:7779`);
         const ws = initWebSocket(`ws://localhost:7779`);
 
         return () => {
-            // Clean up WebSocket connection when component is destroyed
+            // Clean up WebSocket connection and event listener when component is destroyed
             if (ws) {
                 ws.close();
             }
+            window.removeEventListener('hashchange', updateScale);
         };
     });
 </script>
 
 {#if $preloadingComplete}
-    <div class="app-container">
+    <div class="app-container" style="--app-scale: {scale}">
         {#each Object.entries(screens) as [key, Component]}
             {#if $appState.currentScreen === key}
                 <TransitionWrapper>
@@ -66,7 +79,7 @@
         {/if}
     </div>
 {:else}
-    <div class="preloader">
+    <div class="preloader" style="--app-scale: {scale}">
         <div class="preloader-content">
             <h2>Loading assets...</h2>
             <div class="progress-bar">
@@ -100,7 +113,7 @@
         background-color: black;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         border-radius: 10px;
-        transform: scale(0.15);
+        transform: scale(var(--app-scale, 0.15));
         transform-origin: center center;
         min-height: 3840px;
     }
@@ -115,7 +128,7 @@
         background-color: white;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         border-radius: 10px;
-        transform: scale(0.15);
+        transform: scale(var(--app-scale, 0.15));
         transform-origin: center center;
         min-height: 3840px;
     }
