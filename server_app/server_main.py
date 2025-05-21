@@ -26,12 +26,16 @@ STORAGE_DIR = "storage"
 os.makedirs(SAVE_DIR, exist_ok=True)
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
+# Initialize face fusion models
+initialize_sessions_and_globals()
+
+# Initialize models at startup
+initialize_models()
+
 async def process_videos(face_image_path, character_info, face_shape_index):
     os.makedirs(TMP_DIR, exist_ok=True)
     
-    # Initialize face fusion models
-    initialize_sessions_and_globals()
-    
+ 
     # Get source face embedding from captured image
     source_img_bgr = cv2.imread(face_image_path)
     if source_img_bgr is None:
@@ -111,7 +115,7 @@ async def process_videos(face_image_path, character_info, face_shape_index):
     shutil.rmtree(TMP_DIR, ignore_errors=True)
     
     # Cleanup
-    unload_models_and_clear_memory()
+    #unload_models_and_clear_memory()
     return output_filename
 
 async def handle_websocket(websocket):
@@ -144,15 +148,13 @@ async def handle_websocket(websocket):
                     print(f"Image saved as: {filename}")
 
 
-                    # Initialize models at startup
-                    initialize_models()
 
                     # Get face shape classification
                     face_shape = preprocess_image(filename)
                     print(f"Predicted face shape: {face_shape}")
                     
                     # Clean up models when server shuts down
-                    unload_model()
+                    #unload_model()
 
 
                     # Get character info
@@ -172,10 +174,6 @@ async def handle_websocket(websocket):
                         }))
                         continue
 
-                    # Wait for 5 seconds
-                    print("Waiting 5 seconds...")
-                    await asyncio.sleep(5)
-                    
                     # Send result back to client
                     res = {
                         "status": "success",
