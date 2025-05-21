@@ -79,7 +79,7 @@
         background-color: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         cursor: pointer;
-        border-radius: 20px;
+        border-radius: 60.75px;
         transition: transform 0.1s ease-in-out;
     }
     
@@ -98,7 +98,7 @@
         background-color: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         cursor: pointer;
-        border-radius: 20px;
+        border-radius: 60.75px;
         transition: transform 0.1s ease-in-out;
     }
     

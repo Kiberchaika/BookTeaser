@@ -121,7 +121,7 @@
         background-color: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         cursor: pointer;
-        border-radius: 20px;
+        border-radius: 45.56px;
         transition: transform 0.1s ease-in-out;
         position: absolute;
         left: 310px;
