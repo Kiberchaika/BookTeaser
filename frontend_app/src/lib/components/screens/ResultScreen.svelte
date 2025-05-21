@@ -5,8 +5,18 @@
     
     let qrCodeUrl = '';
     let resultVideo;
+    let currentResultUrl;
     
-    onMount(async () => {
+    // Subscribe to the store
+    $: currentResultUrl = $appState.resultUrl;
+    
+    // Watch for changes in currentResultUrl
+    $: if (currentResultUrl) {
+        generateQRCode();
+        updateVideo();
+    }
+    
+    async function generateQRCode() {
         const options = {
             color: {
                 dark: '#d7c09e', // Main color
@@ -14,15 +24,27 @@
             },
             width: 578,
             margin: 0
-        };
+        }; 
         
-        qrCodeUrl = await QRCode.toDataURL('ya.ru', options);
+        qrCodeUrl = await QRCode.toDataURL('http://81.94.158.96:7781/' + currentResultUrl, options);
         
-        // Set video source
+        console.log(' appState.resultUrl!!x!',  currentResultUrl);
+    }
+    
+    function updateVideo() {
         resultVideo = document.querySelector('.result-video');
-        if (resultVideo) {
-            resultVideo.src = 'file:///C:/Users/User/Downloads/3_2.mp4';
-            resultVideo.load(); // Reload the video with new source
+        if (resultVideo && currentResultUrl) {
+            console.log('Setting video source:', currentResultUrl);
+            resultVideo.src = 'http://localhost:7780/' + currentResultUrl;
+            resultVideo.load();
+        }
+    }
+    
+    onMount(() => {
+        // Initial setup if resultUrl is already available
+        if (currentResultUrl) {
+            generateQRCode();
+            updateVideo();
         }
     });
     

@@ -164,8 +164,8 @@ async def handle_websocket(websocket):
                     print(f"Face shape index: {face_shape_index}")
 
                     # Process videos
-                    success = await process_videos(filename, character_info, face_shape_index + 1)  # +1 because face_shape_index is 0-based
-                    if not success:
+                    output_filename = await process_videos(filename, character_info, face_shape_index + 1)  # +1 because face_shape_index is 0-based
+                    if not output_filename:
                         await websocket.send(json.dumps({
                             "status": "error",
                             "message": "Failed to process videos"
@@ -177,13 +177,14 @@ async def handle_websocket(websocket):
                     await asyncio.sleep(5)
                     
                     # Send result back to client
-                    await websocket.send(json.dumps({
+                    res = {
                         "status": "success",
                         "message": "Face capture received and processed successfully",
                         "faceShape": face_shape,
-                        "resultUrl": f"{STORAGE_DIR}/{success}"  # success contains the output filename
-                    }))
-                    print(f"Sent face shape result: {face_shape}")
+                        "resultUrl": f"{output_filename}"
+                    }
+                    await websocket.send(json.dumps(res))
+                    print(f"Sent result: {res}")
                 elif data['type'] == 'test_connection':
                     # Handle test connection message
                     print(f"Received test connection from client")

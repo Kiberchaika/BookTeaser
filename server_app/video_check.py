@@ -109,6 +109,6 @@ def print_report(report: Dict[str, List[str]]):
         print()
 
 if __name__ == "__main__":
-    videos_path = "/home/k4/Projects/BookTeaser/videos_original"
+    videos_path = "videos_original"
     report = process_video_directory(videos_path)
     print_report(report)

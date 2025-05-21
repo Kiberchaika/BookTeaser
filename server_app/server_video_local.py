@@ -42,36 +42,36 @@ HTML_TEMPLATE = '''
 @app.route('/<path:path>')
 def browse(path=''):
     # Construct absolute path
-    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'storage')
-    abs_path = os.path.join(base_dir, path)
+    abs_path = os.path.join('storage', path)
     
-    # Security check - make sure we don't go outside storage directory
-    if not abs_path.startswith(base_dir):
-        abort(403)
-    
-    # If path is a file, serve it
-    if os.path.isfile(abs_path):
-        directory = os.path.dirname(path)
-        filename = os.path.basename(path)
-        return send_from_directory(os.path.join('storage', directory), filename)
-    
-    # If path is a directory, show listing
-    if os.path.isdir(abs_path):
-        items = []
-        for item in os.listdir(abs_path):
-            item_path = os.path.join(abs_path, item)
-            items.append({
-                'name': item,
-                'path': os.path.join(path, item) if path else item,
-                'is_dir': os.path.isdir(item_path)
-            })
+    try:
+        # If path is a file, serve it
+        if os.path.isfile(abs_path):
+            return send_from_directory(
+                os.path.abspath('storage'),
+                path,
+                as_attachment=False
+            )
         
-        # Sort items (directories first, then files)
-        items.sort(key=lambda x: (not x['is_dir'], x['name'].lower()))
+        # If path is a directory, show listing
+        if os.path.isdir(abs_path):
+            items = []
+            for item in os.listdir(abs_path):
+                item_path = os.path.join(abs_path, item)
+                items.append({
+                    'name': item,
+                    'path': os.path.join(path, item) if path else item,
+                    'is_dir': os.path.isdir(item_path)
+                })
+            
+            # Sort items (directories first, then files)
+            items.sort(key=lambda x: (not x['is_dir'], x['name'].lower()))
+            
+            return render_template_string(HTML_TEMPLATE, items=items, current_path=path)
         
-        return render_template_string(HTML_TEMPLATE, items=items, current_path=path)
-    
-    abort(404)
+        abort(404)
+    except Exception as e:
+        abort(500, str(e))
 
 if __name__ == '__main__':
     # Create storage directory if it doesn't exist
@@ -79,4 +79,4 @@ if __name__ == '__main__':
     os.makedirs(storage_path, exist_ok=True)
     
     # Run the server
-    app.run(host='0.0.0.0', port=7780, debug=True)
+    app.run(host='0.0.0.0', port=7780, debug=False)

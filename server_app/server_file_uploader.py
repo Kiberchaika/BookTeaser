@@ -6,7 +6,7 @@ import msvcrt  # For Windows file locking check
 from pathlib import Path
 
 class FileUploader:
-    def __init__(self, storage_path="storage", upload_list_file="uploaded_files.txt", server_url="http://localhost:7780"):
+    def __init__(self, storage_path="storage", upload_list_file="uploaded_files.txt", server_url="http://81.94.158.96:7781"):
         self.storage_path = Path(storage_path)
         self.upload_list_file = Path(upload_list_file)
         self.server_url = server_url

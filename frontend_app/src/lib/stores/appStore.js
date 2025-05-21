@@ -104,6 +104,9 @@ function connectWebSocket() {
                                 resultUrl: data.resultUrl
                             };
                         });
+
+                        // Navigate to the result screen
+                        navigateTo('result');
                     }
                 } else if (data.status === 'error') {
                     console.error('Error message received:', data.message);
