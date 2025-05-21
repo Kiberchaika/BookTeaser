@@ -16,9 +16,9 @@ start cmd /k "cd D:\BookTeaser\frontend_app && npm run dev"
 
 
 echo Waiting for servers to initialize...
-timeout /t 10 /nobreak
+timeout /t 15 /nobreak
 
 REM Start Chrome in fullscreen mode
-start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --start-fullscreen --app="http://localhost:7778/#prod"
+start /MIN "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --start-fullscreen --app="http://localhost:7778/#prod"
 
 echo All components have been started! 
