@@ -10,7 +10,7 @@
     let isVideoReady = false;
     let faceCount = 0;
     let debugInfo = "";
-    let isShowDebugInfo = true;
+    let isShowDebugInfo = false;
     let stream;
     let hasFaceNearCenter = false;
     let isStopped = false;
@@ -175,7 +175,11 @@
       // Save the current context state
       ctx.save();
       
-      // Move to center, rotate, then move back
+      // First flip horizontally
+      ctx.translate(canvasWidth, 0);
+      ctx.scale(-1, 1);
+      
+      // Then handle rotation from center
       ctx.translate(canvasWidth/2, canvasHeight/2);
       ctx.rotate(ROTATION_ANGLE * Math.PI / 180);
       ctx.translate(-canvasHeight/2, -canvasWidth/2);
@@ -187,35 +191,88 @@
       
       // Center the video and adjust for cropping
       const x = (canvasHeight - scaledWidth) / 2;
-      const y = ((canvasWidth - scaledHeight) / 2) ;
+      const y = ((canvasWidth - scaledHeight) / 2);
       // Draw the video
       ctx.drawImage(video, x, y, scaledWidth, scaledHeight);
       
       // Restore the context state before drawing detections
       ctx.restore();
       
-      // Adjust face detection coordinates to account for cropping
+      // Adjust face detection coordinates to account for cropping and flipping
       const cropOffset = (fullCanvasHeight - canvasHeight) / 2;
       
       // Draw face detection results if available
       if (currentDetections.length > 0) {
-        currentDetections.forEach((detection) => {
-          if (!detection || !detection.detection || !detection.detection.box) return;
-          
-          const box = detection.detection.box;
-          
-          // Adjust box coordinates for cropping
-          const adjustedBox = {
-            x: box.x,
-            y: box.y - cropOffset,
-            width: box.width,
-            height: box.height
-          };
+        // Find the nearest face (using the same logic as findMostCenteredFace)
+        const centerX = canvasWidth / 2;
+        const nearestFace = currentDetections
+          .map(detection => {
+            const box = detection.detection.box;
+            const flippedX = canvasWidth - (box.x + box.width);
+            const faceCenterX = flippedX + (box.width / 2);
+            const distanceX = Math.abs(faceCenterX - centerX);
+            return { detection, distance: distanceX };
+          })
+          .sort((a, b) => a.distance - b.distance)[0];
 
-          // Only draw if the face is within the cropped area
-          if (adjustedBox.y + adjustedBox.height > 0 && adjustedBox.y < canvasHeight) {
-            // Draw rectangle around face only when debug info is shown
-            if (isShowDebugInfo) {
+        // Draw big circle around nearest face - always shown
+        if (nearestFace) {
+          const box = nearestFace.detection.detection.box;
+          const flippedX = canvasWidth - (box.x + box.width);
+          const centerX = flippedX + (box.width / 2);
+          const centerY = box.y + (box.height / 2) - cropOffset;
+          const diameter = Math.max(box.width, box.height) * 1.5;
+
+          ctx.beginPath();
+          // Enable anti-aliasing for smoother lines
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          
+          // Enable additional smoothing
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+          
+          // Draw outer glow/shadow
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.lineWidth = 25;
+          ctx.arc(centerX, centerY, diameter / 2, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          // Draw main white circle
+          ctx.beginPath();
+          ctx.shadowBlur = 8;
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = 12;
+          ctx.arc(centerX, centerY, diameter / 2, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          // Draw inner highlight for extra smoothness
+          ctx.beginPath();
+          ctx.shadowBlur = 4;
+          ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+          ctx.lineWidth = 3;
+          ctx.arc(centerX, centerY, diameter / 2, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+
+        // Debug visualization only shown when isShowDebugInfo is true
+        if (isShowDebugInfo) {
+          currentDetections.forEach((detection) => {
+            if (!detection || !detection.detection || !detection.detection.box) return;
+            
+            const box = detection.detection.box;
+            
+            // Adjust box coordinates for cropping and flipping
+            const adjustedBox = {
+              x: canvasWidth - (box.x + box.width), // Flip X coordinate
+              y: box.y - cropOffset,
+              width: box.width,
+              height: box.height
+            };
+
+            // Only draw if the face is within the cropped area
+            if (adjustedBox.y + adjustedBox.height > 0 && adjustedBox.y < canvasHeight) {
+              // Draw rectangle around face only when debug info is shown
               ctx.strokeStyle = "#00ff00";
               ctx.lineWidth = 3;
               ctx.strokeRect(adjustedBox.x, adjustedBox.y, adjustedBox.width, adjustedBox.height);
@@ -228,25 +285,26 @@
                 ctx.font = "16px Arial";
                 ctx.fillText("Face", adjustedBox.x + 5, adjustedBox.y - 7);
               }
+              
+              // Visualize facial landmarks if landmarks exist
+              if (detection.landmarks && detection.landmarks.positions) {
+                const landmarks = detection.landmarks;
+                ctx.fillStyle = "#ffffff";
+                landmarks.positions.forEach((point) => {
+                  // Adjust landmark coordinates for cropping and flipping
+                  const adjustedX = canvasWidth - point.x; // Flip X coordinate
+                  const adjustedY = point.y - cropOffset;
+                  // Only draw landmarks that are within the cropped area
+                  if (adjustedY > 0 && adjustedY < canvasHeight) {
+                    ctx.beginPath();
+                    ctx.arc(adjustedX, adjustedY, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                  }
+                });
+              }
             }
-            
-            // Visualize facial landmarks if enabled and landmarks exist
-            if (isShowDebugInfo && detection.landmarks && detection.landmarks.positions) {
-              const landmarks = detection.landmarks;
-              ctx.fillStyle = "#ffffff";
-              landmarks.positions.forEach((point) => {
-                // Adjust landmark coordinates for cropping
-                const adjustedY = point.y - cropOffset;
-                // Only draw landmarks that are within the cropped area
-                if (adjustedY > 0 && adjustedY < canvasHeight) {
-                  ctx.beginPath();
-                  ctx.arc(point.x, adjustedY, 2, 0, 2 * Math.PI);
-                  ctx.fill();
-                }
-              });
-            }
-          }
-        });
+          });
+        }
       }
       
       // Draw debug info directly on canvas
@@ -283,7 +341,9 @@
         
         // Calculate distances for all faces and find the most centered one
         const facesWithDistances = faceBoxes.map(box => {
-            const faceCenterX = box.x + (box.width / 2);
+            // Adjust for flipped coordinates when calculating center
+            const flippedX = canvasWidth - (box.x + box.width);
+            const faceCenterX = flippedX + (box.width / 2);
             const distanceX = Math.abs(faceCenterX - centerX);
             
             return {
@@ -301,7 +361,9 @@
         if (closestFace && canvasRef) {
             const box = closestFace.box;
             const size = Math.max(box.width, box.height) * 1.5; // Increased by 50%
-            const x = Math.max(0, box.x - (size - box.width) / 2);
+            // Adjust x coordinate for flipped image
+            const flippedX = canvasWidth - (box.x + box.width);
+            const x = Math.max(0, flippedX - (size - box.width) / 2);
             const y = Math.max(0, box.y - (size - box.height) / 2);
             
             // Create temporary canvas for cropping
