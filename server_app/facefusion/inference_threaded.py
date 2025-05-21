@@ -694,7 +694,7 @@ def perform_face_swap(
             face_center = np.array([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2])
             distance_to_center = np.linalg.norm(face_center - image_center)
             
-            if score > 0.7 and face_size > 20000:
+            if score > 0.6 and face_size > 10000:
                 valid_faces.append({'index': i, 'bbox': bbox, 'landmarks': landmarks, 'distance_to_center': distance_to_center})
         
         if not valid_faces:
