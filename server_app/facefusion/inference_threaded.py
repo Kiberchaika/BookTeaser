@@ -823,7 +823,10 @@ def perform_face_swap(
     )
     print("Raw swap pasted.")
 
+    output_image = frame_with_raw_swap
+
     # --- Enhancer ---
+    '''
     if affine_matrix_enhancer_to_512 is None:
         print("Skipping enhancement: Failed to align for enhancer.")
         return frame_with_raw_swap
@@ -844,6 +847,7 @@ def perform_face_swap(
         pasted_enhanced_image, face_enhancer_blend_ratio, 0
     )
     print("Face enhanced and blended.")
+    '''
 
     return output_image
 

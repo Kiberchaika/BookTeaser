@@ -103,14 +103,14 @@
             } catch (error) {
                 console.error("Error sending face crop:", error);
             }
+
+            currentState = 2;
+            animateCircularProgress();
         }
         else {
             // goto welcome screen
             navigateTo('welcome');
         }
-
-        currentState = 2;
-        animateCircularProgress();
     }
 
     function handleStartClick() {
@@ -350,7 +350,7 @@
 
     .webcam-container {
         position: absolute;
-        top: 700px;
+        top:  -800px;
     }
 
     .progress-container {

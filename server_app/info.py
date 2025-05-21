@@ -179,8 +179,7 @@ characters = {
                 "replace_face": False
             },
             9: {
-                "replace_face": True,
-                "protect_eyes": False
+                "replace_face": False
             },
             10: {
                 "replace_face": False
