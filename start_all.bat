@@ -2,16 +2,18 @@
 echo Starting all servers...
 
 REM Start the main server
-start cmd /k "python server_app\server_main.py"
+start cmd /k "cd D:\BookTeaser && python server_app\server_main.py"
 
 REM Start the file uploader server
-start cmd /k "python server_app\server_file_uploader.py"
+start cmd /k "cd D:\BookTeaser && python server_app\server_file_uploader.py"
 
 REM Start the video local server
-start cmd /k "python server_app\server_video_local.py"
+start cmd /k "cd D:\BookTeaser && python server_app\server_video_local.py"
 
 REM Start the development server
-start cmd /k "cd frontend_app && npm run dev"
+start cmd /k "cd D:\BookTeaser\frontend_app && npm run dev"
+
+
 
 echo Waiting for servers to initialize...
 timeout /t 10 /nobreak
