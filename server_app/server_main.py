@@ -8,6 +8,7 @@ from datetime import datetime
 import os
 import cv2
 import subprocess
+import shutil
 from face_shape_classifier.inference import initialize_models, preprocess_image, unload_model
 from facefusion.inference_threaded import (
     initialize_sessions_and_globals,
@@ -54,7 +55,7 @@ async def process_videos(face_image_path, character_info, face_shape_index):
             input_video = f"{scene_folder}/video.mp4"
             output_video = f"{TMP_DIR}/{scene_num}.mp4"
             if os.path.exists(input_video):
-                subprocess.run(["cp", input_video, output_video])
+                shutil.copy2(input_video, output_video)
             continue
             
         # For scenes with replace_face=True, process only the face_shape_index video
@@ -107,7 +108,7 @@ async def process_videos(face_image_path, character_info, face_shape_index):
     ])
 
     # delete tmp folder
-    subprocess.run(["rm", "-rf", TMP_DIR])
+    shutil.rmtree(TMP_DIR, ignore_errors=True)
     
     # Cleanup
     unload_models_and_clear_memory()

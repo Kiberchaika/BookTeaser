@@ -6,3 +6,6 @@ Pillow
 open-clip-torch
 torchvision
 requests
+onnx
+onnxruntime-gpu
+Flask
