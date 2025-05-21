@@ -8,3 +8,6 @@ videos:
 1. check
 2. convert
 3. preprocessing
+
+run server on :
+source .venv/bin/activate && nohup python server_storage/server_storage.py > server.log 2>&1 &
