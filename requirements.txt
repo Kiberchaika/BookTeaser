@@ -1,0 +1,8 @@
+opencv-python
+websockets==12.0
+numpy==1.26.3
+torch
+Pillow
+open-clip-torch
+torchvision
+requests

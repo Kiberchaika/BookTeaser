@@ -135,7 +135,7 @@ def print_report(report: Dict[str, List[str]]):
         print()
 
 if __name__ == "__main__":
-    src_path = "/home/k4/Projects/BookTeaser/videos_original"
-    dst_path = "/home/k4/Projects/BookTeaser/videos_processed"
+    src_path = "videos_original"
+    dst_path = "videos_processed"
     report = process_video_directory(src_path, dst_path)
     print_report(report)

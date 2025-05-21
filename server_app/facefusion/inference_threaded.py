@@ -70,33 +70,89 @@ BASE_SWAP_MASK_DESIRED_REGIONS = ['skin', 'nose', 'mouth', 'upper-lip', 'lower-l
 
 
 # Model Download Utility
+def verify_model_file(model_path):
+    try:
+        if not os.path.exists(model_path):
+            print(f"Model file not found: {model_path}")
+            return False
+        
+        # Check if file is empty or too small
+        file_size = os.path.getsize(model_path)
+        if file_size < 1024:  # Less than 1KB is definitely wrong
+            print(f"Model file is too small ({file_size} bytes): {model_path}")
+            return False
+            
+        # Try to load the model to verify it's valid
+        try:
+            onnx_model = onnx.load(model_path)
+            onnx.checker.check_model(onnx_model)
+            return True
+        except Exception as e:
+            print(f"Failed to validate ONNX model {model_path}: {e}")
+            return False
+            
+    except Exception as e:
+        print(f"Error verifying model file {model_path}: {e}")
+        return False
+
 def download_model(model_info):
     url = model_info["url"]
     path = model_info["path"]
     name = os.path.basename(path)
-    if not os.path.exists(path):
-        print(f"Downloading {name} from {url}...")
-        try:
-            response = requests.get(url, stream=True, timeout=120)
-            response.raise_for_status()
-            total_size = int(response.headers.get('content-length', 0))
-            block_size = 1024
-            with open(path, 'wb') as f, tqdm(
-                desc=name, total=total_size, unit='iB', unit_scale=True, unit_divisor=1024,
-            ) as bar:
-                for data in response.iter_content(block_size):
-                    bar.update(len(data))
-                    f.write(data)
-            if total_size != 0 and bar.n != total_size:
-                print(f"ERROR: Download incomplete for {name}. Expected {total_size}, got {bar.n}")
-                if os.path.exists(path): os.remove(path)
+    
+    # If file exists, verify it first
+    if os.path.exists(path):
+        if verify_model_file(path):
+            print(f"Model {name} already exists and is valid.")
+            return True
+        else:
+            print(f"Existing model {name} is invalid. Re-downloading...")
+            try:
+                os.remove(path)
+            except Exception as e:
+                print(f"Failed to remove invalid model file: {e}")
                 return False
-            print(f"Downloaded {name} successfully.")
-        except requests.exceptions.RequestException as e:
-            print(f"ERROR: Failed to download {name}: {e}")
-            if os.path.exists(path): os.remove(path)
+    
+    print(f"Downloading {name} from {url}...")
+    temp_path = path + ".temp"
+    try:
+        response = requests.get(url, stream=True, timeout=120)
+        response.raise_for_status()
+        total_size = int(response.headers.get('content-length', 0))
+        block_size = 1024
+        
+        with open(temp_path, 'wb') as f, tqdm(
+            desc=name, total=total_size, unit='iB', unit_scale=True, unit_divisor=1024,
+        ) as bar:
+            for data in response.iter_content(block_size):
+                bar.update(len(data))
+                f.write(data)
+                
+        if total_size != 0 and bar.n != total_size:
+            print(f"ERROR: Download incomplete for {name}. Expected {total_size}, got {bar.n}")
+            if os.path.exists(temp_path): os.remove(temp_path)
             return False
-    return True
+            
+        # Verify the downloaded file
+        if verify_model_file(temp_path):
+            # If verification successful, move to final location
+            if os.path.exists(path): os.remove(path)
+            os.rename(temp_path, path)
+            print(f"Downloaded and verified {name} successfully.")
+            return True
+        else:
+            print(f"Downloaded file failed verification: {name}")
+            if os.path.exists(temp_path): os.remove(temp_path)
+            return False
+            
+    except requests.exceptions.RequestException as e:
+        print(f"ERROR: Failed to download {name}: {e}")
+        if os.path.exists(temp_path): os.remove(temp_path)
+        return False
+    except Exception as e:
+        print(f"ERROR: Unexpected error while downloading {name}: {e}")
+        if os.path.exists(temp_path): os.remove(temp_path)
+        return False
 
 def download_all_models():
     all_successful = True
@@ -211,7 +267,7 @@ def warp_face_by_translation(temp_vision_frame, translation_xy, scale, crop_size
     return crop_vision_frame, affine_matrix
 
 # ONNX Session Initialization
-providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+providers = ['CUDAExecutionProvider']
 detector_session, landmarker_session, recognizer_session = None, None, None
 inswapper_session, simswap_session, simswap_arcface_converter_session = None, None, None
 enhancer_session, occluder_session, parser_session = None, None, None
@@ -223,6 +279,14 @@ def initialize_sessions_and_globals():
     global enhancer_session, occluder_session, parser_session
     global inswapper_matrix_global
     print("Initializing ONNX Runtime sessions and globals...")
+    
+    # First verify all model files
+    for model_name, model_info in MODELS_TO_DOWNLOAD.items():
+        if not verify_model_file(model_info["path"]):
+            print(f"Model file verification failed for {model_name}")
+            if not download_model(model_info):
+                raise RuntimeError(f"Failed to download or verify {model_name}")
+    
     try:
         detector_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_detector_retinaface"]["path"], providers=providers)
         landmarker_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_landmarker_2dfan4"]["path"], providers=providers)
