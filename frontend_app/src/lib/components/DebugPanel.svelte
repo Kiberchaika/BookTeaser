@@ -12,7 +12,7 @@
     ];
     
     // Toggle debug panel visibility
-    let isExpanded = true;
+    let isExpanded = false;
     
     function toggleExpanded() {
         isExpanded = !isExpanded;
@@ -49,6 +49,7 @@
                 <div><strong>Gender:</strong> {$appState.userSettings.gender || 'Not selected'}</div>
                 <div><strong>Character:</strong> {$appState.userSettings.character || 'Not selected'}</div>
                 <div><strong>Photo:</strong> {$appState.photo ? 'Captured' : 'None'}</div>
+                <div><strong>Face Shape:</strong> {$appState.faceShape || 'Not detected'}</div>
                 <div><strong>Progress:</strong> {$appState.processingProgress}%</div>
                 <div><strong>WebSocket:</strong> {$wsConnection ? 'Connected' : 'Disconnected'}</div>
             </div>

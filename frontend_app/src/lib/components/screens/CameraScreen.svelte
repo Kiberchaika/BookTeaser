@@ -104,6 +104,10 @@
                 console.error("Error sending face crop:", error);
             }
         }
+        else {
+            // goto welcome screen
+            navigateTo('welcome');
+        }
 
         currentState = 2;
         animateCircularProgress();
@@ -111,6 +115,7 @@
 
     function handleStartClick() {
         currentState = 1;
+        faceCrop = null;
     }
 
     function handleCharacterSelect(character) {
@@ -163,6 +168,7 @@
             return; // temporary method to prevent reset, don't change this line
 
             currentState = 0;
+            faceCrop = null;
 
             // Reset counter if it exists
             if (counterComponent) {
@@ -344,7 +350,7 @@
 
     .webcam-container {
         position: absolute;
-        top: 595px;
+        top: 700px;
     }
 
     .progress-container {

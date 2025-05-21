@@ -34,9 +34,9 @@ MODELS_TO_DOWNLOAD = {
         "url": "https://github.com/facefusion/facefusion-assets/releases/download/models-3.0.0/arcface_w600k_r50.onnx",
         "path": os.path.join(MODEL_DIR, "arcface_w600k_r50.onnx")
     },
-    "face_swapper_inswapper_128_fp16": {
-        "url": "https://github.com/facefusion/facefusion-assets/releases/download/models-3.0.0/inswapper_128_fp16.onnx",
-        "path": os.path.join(MODEL_DIR, "inswapper_128_fp16.onnx")
+    "face_swapper_inswapper_128": {
+        "url": "https://github.com/facefusion/facefusion-assets/releases/download/models-3.0.0/inswapper_128.onnx",
+        "path": os.path.join(MODEL_DIR, "inswapper_128.onnx")
     },
     "face_swapper_simswap_256": {
         "url": "https://github.com/facefusion/facefusion-assets/releases/download/models-3.0.0/simswap_256.onnx",
@@ -291,14 +291,14 @@ def initialize_sessions_and_globals():
         detector_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_detector_retinaface"]["path"], providers=providers)
         landmarker_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_landmarker_2dfan4"]["path"], providers=providers)
         recognizer_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_recognizer_arcface"]["path"], providers=providers)
-        inswapper_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_swapper_inswapper_128_fp16"]["path"], providers=providers)
+        inswapper_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_swapper_inswapper_128"]["path"], providers=providers)
         simswap_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_swapper_simswap_256"]["path"], providers=providers)
         simswap_arcface_converter_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["arcface_converter_simswap"]["path"], providers=providers)
         enhancer_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_enhancer_gfpgan_1.4"]["path"], providers=providers)
         occluder_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_occluder_xseg1"]["path"], providers=providers)
         parser_session = onnxruntime.InferenceSession(MODELS_TO_DOWNLOAD["face_parser_bisenet_resnet34"]["path"], providers=providers)
 
-        inswapper_model_path = MODELS_TO_DOWNLOAD["face_swapper_inswapper_128_fp16"]["path"]
+        inswapper_model_path = MODELS_TO_DOWNLOAD["face_swapper_inswapper_128"]["path"]
         if os.path.exists(inswapper_model_path):
             onnx_model = onnx.load(inswapper_model_path)
             inswapper_matrix_global = onnx.numpy_helper.to_array(onnx_model.graph.initializer[-1])
@@ -628,6 +628,7 @@ def get_source_face_embedding(source_img_bgr):
     aligned_source_face_112, _ = warp_face_by_face_landmark_5(
         source_img_bgr, source_landmarks_5pt_for_arcface, "arcface_112_v2", (112, 112)
     )
+
     source_arcface_embedding = get_arcface_embedding(aligned_source_face_112)
     print("Source face ArcFace embedding extracted.")
     return source_arcface_embedding

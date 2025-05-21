@@ -10,7 +10,7 @@
     let isVideoReady = false;
     let faceCount = 0;
     let debugInfo = "";
-    let isShowDebugInfo = false;
+    let isShowDebugInfo = true;
     let stream;
     let hasFaceNearCenter = false;
     let isStopped = false;

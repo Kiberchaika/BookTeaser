@@ -101,7 +101,8 @@ function connectWebSocket() {
                             console.log('Updating app state with result URL:', data.resultUrl);
                             return {
                                 ...state,
-                                resultUrl: data.resultUrl
+                                resultUrl: data.resultUrl,
+                                faceShape: data.faceShape
                             };
                         });
 
