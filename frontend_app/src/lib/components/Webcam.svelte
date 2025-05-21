@@ -310,7 +310,7 @@
             // Draw the cropped face
             tempCtx.drawImage(
                 canvasRef,
-                x, y, size, size,  // Source rectangle
+                x, y - CROP_PIXELS, size, size,  // Source rectangle
                 0, 0, size, size   // Destination rectangle
             );
             
