@@ -111,6 +111,7 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
         "ffmpeg", "-f", "concat", "-safe", "0",
         "-i", f"{TMP_DIR}/filelist.txt",
         "-c", "copy",
+        "-y", 
         temp_video
     ])
 
@@ -121,7 +122,7 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
         "-c:v", "copy",
         "-c:a", "aac",
         "-af", f"apad=whole_dur=ceil",
-        "-shortest", "0",
+        "-shortest",
         output_path
     ])
 
