@@ -17,3 +17,4 @@
 
 ```bash
 source .venv/bin/activate && nohup python server_storage/server_storage.py > server.log 2>&1 &
+```
