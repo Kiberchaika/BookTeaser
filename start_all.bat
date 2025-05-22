@@ -19,6 +19,8 @@ echo Waiting for servers to initialize...
 timeout /t 15 /nobreak
 
 REM Start Chrome in fullscreen mode
-start /MIN "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --start-fullscreen --app="http://localhost:7778/#prod"
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --start-fullscreen --app="http://localhost:7778/#0.5" 
+ 
+REM --incognito --disable-application-cache --disk-cache-size=1 --media-cache-size=1
 
 echo All components have been started! 

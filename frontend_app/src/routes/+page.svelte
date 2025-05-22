@@ -34,7 +34,12 @@
     onMount(() => {
         // Check if hash is #prod and set scale accordingly
         const updateScale = () => {
-            scale = window.location.hash === '#prod' ? '1.0' : '0.15';
+            const hash = window.location.hash;
+            if (hash && /^#\d*\.?\d+$/.test(hash)) {
+                scale = hash.substring(1);
+            } else {
+                scale = '0.15';
+            }
         };
         
         // Initial check

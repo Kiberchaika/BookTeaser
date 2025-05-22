@@ -350,7 +350,7 @@
 
     .webcam-container {
         position: absolute;
-        top:  -800px;
+        top: 0px;
     }
 
     .progress-container {
