@@ -116,8 +116,7 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
     ])
 
     # Add audio with padding or cutting
-
-    print([
+    subprocess.run([
         "ffmpeg", "-i", temp_video,
         "-i", f"audio/{character}.mp3",
         "-c:v", "copy",
@@ -126,7 +125,6 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
         "-shortest",
         output_path
     ])
-
     
 
     # Clean up temporary files
