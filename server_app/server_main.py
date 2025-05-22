@@ -116,7 +116,8 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
     ])
 
     # Add audio with padding or cutting
-    subprocess.run([
+
+    print([
         "ffmpeg", "-i", temp_video,
         "-i", f"audio/{character}.mp3",
         "-c:v", "copy",
@@ -125,6 +126,8 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
         "-shortest",
         output_path
     ])
+
+    
 
     # Clean up temporary files
     os.remove(temp_video)
@@ -183,22 +186,21 @@ async def handle_websocket(websocket):
 
                     # Process videos
                     output_filename = await process_videos(filename, character_info, face_shape_index + 1, data['character'])  # +1 because face_shape_index is 0-based
-                    if not output_filename:
+                    if isinstance(output_filename, str):
+                        # Send result back to client
+                        res = {
+                            "status": "success",
+                            "message": "Face capture received and processed successfully",
+                            "faceShape": face_shape,
+                            "resultUrl": f"{output_filename}"
+                        }
+                        await websocket.send(json.dumps(res))
+                        print(f"Sent result: {res}")
+                    else:
                         await websocket.send(json.dumps({
                             "status": "error",
                             "message": "Failed to process videos"
                         }))
-                        continue
-
-                    # Send result back to client
-                    res = {
-                        "status": "success",
-                        "message": "Face capture received and processed successfully",
-                        "faceShape": face_shape,
-                        "resultUrl": f"{output_filename}"
-                    }
-                    await websocket.send(json.dumps(res))
-                    print(f"Sent result: {res}")
                 elif data['type'] == 'test_connection':
                     # Handle test connection message
                     print(f"Received test connection from client")
