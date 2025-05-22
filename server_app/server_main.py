@@ -121,8 +121,9 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
         "-i", f"audio/{character}.mp3",
         "-c:v", "copy",
         "-c:a", "aac",
-        "-af", f"apad=whole_dur=ceil",
+        "-af", "apad",
         "-shortest",
+        "-y",
         output_path
     ])
 
