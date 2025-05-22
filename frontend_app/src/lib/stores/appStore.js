@@ -110,6 +110,7 @@ function connectWebSocket() {
                         navigateTo('result');
                     }
                 } else if (data.status === 'error') {
+                    navigateTo('welcome');
                     console.error('Error message received:', data.message);
                 }
             } catch (error) {
