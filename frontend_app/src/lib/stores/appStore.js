@@ -6,7 +6,7 @@ export { faceDetectionState, loadFaceDetectionModels };
 
 // Application state store
 export const appState = writable({
-    currentScreen: 'welcome', // Current screen being displayed
+    currentScreen: 'blank', // Current screen being displayed
     userSettings: {
         gender: null, // User's selected gender
         character: null, // Selected story scene

@@ -16,11 +16,13 @@
     import CameraScreen from '$lib/components/screens/CameraScreen.svelte';
     import ProgressScreen from '$lib/components/screens/ProgressScreen.svelte';
     import ResultScreen from '$lib/components/screens/ResultScreen.svelte';
+    import BlankScreen from '$lib/components/screens/BlankScreen.svelte';
 
     import { loadFaceDetectionModels } from '$lib/stores/faceDetectionStore';
 
     // Map of screen components
     const screens = {
+        'blank': BlankScreen,
         'welcome': WelcomeScreen,
         'scene-selection-man': SceneSelectionManScreen,
         'scene-selection-woman': SceneSelectionWomanScreen,
