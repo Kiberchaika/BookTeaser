@@ -1,13 +1,19 @@
-Свелти фронт - 7778
-Бэк для фронта - server_main- 7779
-Сервер для видео - server_video_local.py - 7780
-Иммерс - server_storage.py - 7781
+# Серверы и порты
 
+- **Свелти фронт** `front` — порт `7778`
+- **Бэк для фронта** `server_main` — порт `7779`
+- **Сервер для видео** `server_video_local.py` — порт `7780`
+- **Иммерс** `server_storage.py` — порт `7781`
 
-videos:
-1. check
-2. convert
-3. preprocessing
+## Видео обработка
 
-run server on :
+1. `check` — проверка видео
+2. `convert` — конвертация
+3. `preprocessing` — предварительная обработка
+
+## Запуск сервера
+
+Чтобы запустить сервер, выполните команду:
+
+```bash
 source .venv/bin/activate && nohup python server_storage/server_storage.py > server.log 2>&1 &
