@@ -639,7 +639,8 @@ def perform_face_swap(
     target_img_bgr, 
     swapper_model_name: SwapperModelType = "inswapper",
     use_eye_mask: bool = False, # New argument
-    cache_file_prefix=None
+    cache_file_prefix=None,
+    use_enhance: bool = True
 ):
     if source_arcface_embedding is None:
         print("Error: Source embedding is None. Cannot perform face swap.")
@@ -807,7 +808,7 @@ def perform_face_swap(
             # Or, simply delete the cache file and recall perform_face_swap.
             if full_cache_file_path and os.path.exists(full_cache_file_path):
                 os.remove(full_cache_file_path)
-            return perform_face_swap(source_arcface_embedding, target_img_bgr, swapper_model_name, use_eye_mask, cache_file_prefix) # Recurse once
+            return perform_face_swap(source_arcface_embedding, target_img_bgr, swapper_model_name, use_eye_mask, cache_file_prefix, use_enhance) # Recurse once
 
     # --- Perform Actual Swap ---
     if swapper_model_name == "inswapper":
@@ -826,35 +827,32 @@ def perform_face_swap(
     output_image = frame_with_raw_swap
 
     # --- Enhancer ---
-    '''
-    if affine_matrix_enhancer_to_512 is None:
-        print("Skipping enhancement: Failed to align for enhancer.")
-        return frame_with_raw_swap
-    
-    face_crop_for_enhancer_512, _ = warp_face_by_face_landmark_5(
-        frame_with_raw_swap, target_landmarks_5pt, "ffhq_512", (512, 512)
-    )
-    enhanced_face_gfpgan_512 = enhance_face_gfpgan(face_crop_for_enhancer_512)
-    print("Face enhanced by GFPGAN.")
-    
-    pasted_enhanced_image = paste_back(
-        frame_with_raw_swap.copy(), enhanced_face_gfpgan_512, final_mask_for_enhancer_paste_feathered_512, affine_matrix_enhancer_to_512
-    )
-    
-    face_enhancer_blend_ratio = 0.8
-    output_image = cv2.addWeighted(
-        frame_with_raw_swap, 1.0 - face_enhancer_blend_ratio,
-        pasted_enhanced_image, face_enhancer_blend_ratio, 0
-    )
-    print("Face enhanced and blended.")
-    '''
-
+    if use_enhance:
+        if affine_matrix_enhancer_to_512 is None:
+            print("Skipping enhancement: Failed to align for enhancer.")
+            return frame_with_raw_swap
+        face_crop_for_enhancer_512, _ = warp_face_by_face_landmark_5(
+            frame_with_raw_swap, target_landmarks_5pt, "ffhq_512", (512, 512)
+        )
+        enhanced_face_gfpgan_512 = enhance_face_gfpgan(face_crop_for_enhancer_512)
+        print("Face enhanced by GFPGAN.")
+        pasted_enhanced_image = paste_back(
+            frame_with_raw_swap.copy(), enhanced_face_gfpgan_512, final_mask_for_enhancer_paste_feathered_512, affine_matrix_enhancer_to_512
+        )
+        face_enhancer_blend_ratio = 0.8
+        output_image = cv2.addWeighted(
+            frame_with_raw_swap, 1.0 - face_enhancer_blend_ratio,
+            pasted_enhanced_image, face_enhancer_blend_ratio, 0
+        )
+        print("Face enhanced and blended.")
+    else:
+        output_image = frame_with_raw_swap
     return output_image
 
 # Video processing functions remain largely the same, but pass swapper_model_name and use_eye_mask
 def perform_face_swap_video(source_arcface_embedding, target_video_path, output_path, 
                             swapper_model_name: SwapperModelType = "inswapper", use_eye_mask: bool = False,
-                            temp_dir=None, cache_dir=None):
+                            temp_dir=None, cache_dir=None, use_enhance: bool = True):
     print(f"Processing video: {target_video_path} with {swapper_model_name}, eye mask: {use_eye_mask}")
     
     if cache_dir:
@@ -883,7 +881,7 @@ def perform_face_swap_video(source_arcface_embedding, target_video_path, output_
                 if not ret: break
                 
                 cache_file = os.path.join(cache_dir, f"frame_{frame_number:06d}") if cache_dir else None
-                processed_frame = perform_face_swap(source_arcface_embedding, frame, swapper_model_name, use_eye_mask, cache_file)
+                processed_frame = perform_face_swap(source_arcface_embedding, frame, swapper_model_name, use_eye_mask, cache_file, use_enhance)
                 
                 frame_path = os.path.join(actual_temp_dir, f"frame_{frame_number:06d}.jpg")
                 cv2.imwrite(frame_path, processed_frame if processed_frame is not None else frame)
@@ -913,10 +911,10 @@ def perform_face_swap_video(source_arcface_embedding, target_video_path, output_
 
 def _process_frame_for_video_worker(frame_number, frame_data, output_frame_path, 
                                     source_arcface_embedding, swapper_model_name, use_eye_mask, 
-                                    cache_dir_for_frames):
+                                    cache_dir_for_frames, use_enhance: bool = True):
     try:
         cache_file_prefix = os.path.join(cache_dir_for_frames, f"frame_{frame_number:06d}") if cache_dir_for_frames else None
-        processed_frame = perform_face_swap(source_arcface_embedding, frame_data, swapper_model_name, use_eye_mask, cache_file_prefix)
+        processed_frame = perform_face_swap(source_arcface_embedding, frame_data, swapper_model_name, use_eye_mask, cache_file_prefix, use_enhance)
         cv2.imwrite(output_frame_path, processed_frame if processed_frame is not None else frame_data)
         return output_frame_path
     except Exception as e:
@@ -931,7 +929,7 @@ def _process_frame_for_video_worker(frame_number, frame_data, output_frame_path,
 def perform_face_swap_video_threaded(source_arcface_embedding, target_video_path, output_path, 
                                      swapper_model_name: SwapperModelType = "inswapper", use_eye_mask: bool = False,
                                      temp_dir_base=None, cache_dir=None, num_threads=10, 
-                                     progress_callback=None):
+                                     progress_callback=None, use_enhance: bool = True):
     if source_arcface_embedding is None:
         print("Error: Source embedding is None."); return False
         
@@ -961,7 +959,7 @@ def perform_face_swap_video_threaded(source_arcface_embedding, target_video_path
                 output_frame_path = os.path.join(actual_temp_dir, f"frame_{frame_number_counter:06d}.jpg")
                 futures.append(executor.submit(_process_frame_for_video_worker, 
                                          frame_number_counter, frame.copy(), output_frame_path, 
-                                         source_arcface_embedding, swapper_model_name, use_eye_mask, cache_dir))
+                                         source_arcface_embedding, swapper_model_name, use_eye_mask, cache_dir, use_enhance))
                 frame_number_counter += 1
             
             if not futures: print("No frames submitted."); return False
@@ -1051,7 +1049,8 @@ if __name__ == "__main__":
     output_image = perform_face_swap(source_arcface_embedding, target_img_bgr, 
                                      swapper_model_name=swapper_choice, 
                                      use_eye_mask=protect_eyes, 
-                                     cache_file_prefix="image_cache") # One cache file per image+settings
+                                     cache_file_prefix="image_cache",
+                                     use_enhance=True)
     cv2.imwrite(output_image_path, output_image)
     print(f"Output image saved to {output_image_path}")
 
@@ -1068,7 +1067,8 @@ if __name__ == "__main__":
             use_eye_mask=protect_eyes,
             temp_dir_base="video_temp", # Optional: specify base for temp frame folders
             cache_dir="video_frame_cache", # Optional: specify base for frame data caches
-            num_threads=4 # Adjust based on your CPU cores
+            num_threads=4, # Adjust based on your CPU cores
+            use_enhance=True
         )
 
     # Example of unloading models

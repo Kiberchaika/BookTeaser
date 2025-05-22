@@ -103,7 +103,8 @@ def process_video(video_input, image_input, num_threads=4, progress=gr.Progress(
         temp_dir_base=temp_output_dir,
         cache_dir=None,
         num_threads=num_threads,
-        progress_callback=update_progress
+        progress_callback=update_progress,
+        use_enhance=True
     )
     
     if not success:

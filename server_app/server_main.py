@@ -64,6 +64,7 @@ async def process_videos(face_image_path, character_info, face_shape_index):
             
         # For scenes with replace_face=True, process only the face_shape_index video
         protect_eyes = scene_info.get("protect_eyes", False)
+        use_enhance = scene_info.get("enhance", False)
         input_video = f"{scene_folder}/{face_shape_index}.mp4"
         output_video = f"{TMP_DIR}/{scene_num}.mp4"
         cache_dir = f"{scene_folder}/{face_shape_index}"
@@ -72,7 +73,7 @@ async def process_videos(face_image_path, character_info, face_shape_index):
         os.makedirs(cache_dir, exist_ok=True)
         
         print(f"\nProcessing {character_folder} - Scene {scene_num}")
-        print(f"Using {swapper_model} swapper, protect_eyes={protect_eyes}")
+        print(f"Using {swapper_model} swapper, protect_eyes={protect_eyes}, enhance={use_enhance}")
         
         # Process the video
         success = perform_face_swap_video_threaded(
@@ -82,7 +83,8 @@ async def process_videos(face_image_path, character_info, face_shape_index):
             swapper_model_name=swapper_model,
             use_eye_mask=protect_eyes,
             cache_dir=cache_dir,
-            num_threads=4
+            num_threads=4,
+            use_enhance=use_enhance
         )
         
         if not success:

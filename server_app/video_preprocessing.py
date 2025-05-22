@@ -60,7 +60,8 @@ def process_videos():
                     swapper_model_name=swapper_model,
                     use_eye_mask=protect_eyes,
                     cache_dir=cache_dir,
-                    num_threads=4  # Adjust based on your CPU cores
+                    num_threads=4,  # Adjust based on your CPU cores
+                    use_enhance=False
                 )
                 
                 if success:
