@@ -32,7 +32,7 @@ initialize_sessions_and_globals()
 # Initialize models at startup
 initialize_models()
 
-async def process_videos(face_image_path, character_info, face_shape_index):
+async def process_videos(face_image_path, character_info, face_shape_index, character):
     os.makedirs(TMP_DIR, exist_ok=True)
     
  
@@ -105,15 +105,28 @@ async def process_videos(face_image_path, character_info, face_shape_index):
     output_filename = f"{timestamp}.mp4"
     output_path = f"{STORAGE_DIR}/{output_filename}"
     
-    # Use ffmpeg to concatenate videos
+    # First concatenate videos without audio
+    temp_video = f"{TMP_DIR}/temp_video.mp4"
     subprocess.run([
         "ffmpeg", "-f", "concat", "-safe", "0",
         "-i", f"{TMP_DIR}/filelist.txt",
         "-c", "copy",
+        temp_video
+    ])
+
+    # Add audio with padding or cutting
+    subprocess.run([
+        "ffmpeg", "-i", temp_video,
+        "-i", f"audio/{character}.mp3",
+        "-c:v", "copy",
+        "-c:a", "aac",
+        "-af", f"apad=whole_dur=ceil",
+        "-shortest", 0,
         output_path
     ])
 
-    # delete tmp folder
+    # Clean up temporary files
+    os.remove(temp_video)
     shutil.rmtree(TMP_DIR, ignore_errors=True)
     
     # Cleanup
@@ -168,7 +181,7 @@ async def handle_websocket(websocket):
                     print(f"Face shape index: {face_shape_index}")
 
                     # Process videos
-                    output_filename = await process_videos(filename, character_info, face_shape_index + 1)  # +1 because face_shape_index is 0-based
+                    output_filename = await process_videos(filename, character_info, face_shape_index + 1, data['character'])  # +1 because face_shape_index is 0-based
                     if not output_filename:
                         await websocket.send(json.dumps({
                             "status": "error",
