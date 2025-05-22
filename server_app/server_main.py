@@ -123,7 +123,6 @@ async def process_videos(face_image_path, character_info, face_shape_index, char
         "-c:a", "aac",
         "-af", "apad",
         "-shortest",
-        "-y",
         output_path
     ])
 
