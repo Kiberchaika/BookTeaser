@@ -152,7 +152,10 @@
             if (circularProgress < 1) {
                 requestAnimationFrame(updateProgress);
             } else {
-                navigateTo('progress');
+                // if screen is not welcome, navigate to welcome
+                if ($appState.currentScreen === 'camera') {
+                    navigateTo('progress');
+                }
             }
         }
 
