@@ -23,14 +23,12 @@ source .venv/bin/activate && nohup python server_storage/server_storage.py > ser
 
 ### Датасеты
 
-- **Женские лица** — 6318 изображений
-  - Источник: [FaceShape Dataset](https://universe.roboflow.com/faceshape/faceshape-dfw6w)
-  - Классы: Heart, Oblong, Oval, Round, Square
-
-- **Мужские лица** — 1816 изображений
-  - Источник: [Male Face Dataset](https://universe.roboflow.com/university-ufvlh/male-face)
-  - Классы: Square, Oval, Round
-  - Дополнительные метки: Curly Hair, Straight Hair
+https://universe.roboflow.com/faceshape/faceshape-dfw6w (6318)
+Классы: Heart, Oblong, Oval, Round, Square
+https://universe.roboflow.com/project-rk5he/face-shape-classification-yoqx4 (4002)
+Классы: Heart, Oblong, Oval, Round, Square
+https://universe.roboflow.com/faceshape-vxygg/faceshape-atkte (6497)
+Классы: Heart, Long, Oval, Round, Square
 
 ### Аугментация данных
 
