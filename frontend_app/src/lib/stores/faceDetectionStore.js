@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 import * as faceapi from 'face-api.js';
 
 // Face detection model state
@@ -8,8 +8,38 @@ export const faceDetectionState = writable({
     error: null
 });
 
+// Canvas stores
+export const detectionCanvas = writable(null);
+export const cropCanvas = writable(null);
+
+// Derived contexts from canvas stores
+export const detectionCtx = derived(
+    detectionCanvas,
+    ($detectionCanvas) => $detectionCanvas?.getContext('2d') || null
+);
+
+export const cropCtx = derived(
+    cropCanvas,
+    ($cropCanvas) => $cropCanvas?.getContext('2d') || null
+);
+
 // Constants
 const MODEL_URL = "/weights";
+
+// Initialize canvases (call this from a Svelte component's onMount)
+export function initializeCanvases() {
+    if (typeof document === 'undefined') return false;
+    
+    // Create detection canvas
+    const detCanvas = document.createElement('canvas');
+    detectionCanvas.set(detCanvas);
+    
+    // Create crop canvas
+    const crpCanvas = document.createElement('canvas');
+    cropCanvas.set(crpCanvas);
+    
+    return true;
+}
 
 // Function to load face detection models
 export async function loadFaceDetectionModels() {
@@ -18,19 +48,18 @@ export async function loadFaceDetectionModels() {
         faceDetectionState.set({ isLoading: false, isLoaded: true, error: null });
         return true;
     }
-    
+   
     // Set loading state
     faceDetectionState.set({ isLoading: true, isLoaded: false, error: null });
-    
+   
     try {
         // Load face detection models
         await Promise.all([
             faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
             faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
         ]);
-
         await testFaceDetectionOnBlackCanvas();
-        
+       
         console.log("Face detection and landmark models loaded successfully");
         faceDetectionState.set({ isLoading: false, isLoaded: true, error: null });
         return true;
@@ -39,7 +68,7 @@ export async function loadFaceDetectionModels() {
         faceDetectionState.set({ isLoading: false, isLoaded: false, error: error.message });
         return false;
     }
-} 
+}
 
 // Test face detection on black canvas
 async function testFaceDetectionOnBlackCanvas() {
@@ -47,18 +76,18 @@ async function testFaceDetectionOnBlackCanvas() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = 100;
     tempCanvas.height = 100;
-    
+   
     // Get the 2D context and fill with black
     const ctx = tempCanvas.getContext('2d');
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, 100, 100);
-    
+   
     try {
         // Ensure models are loaded
         if (!faceapi.nets.ssdMobilenetv1.isLoaded || !faceapi.nets.faceLandmark68Net.isLoaded) {
             return null;
         }
-        
+       
         // Run face detection on the black canvas
         const detections = await faceapi.detectAllFaces(tempCanvas).withFaceLandmarks();
         console.log('Face detection results on black canvas:', detections);
@@ -67,4 +96,4 @@ async function testFaceDetectionOnBlackCanvas() {
         console.error('Error during test face detection:', error);
         return null;
     }
-} 
+}

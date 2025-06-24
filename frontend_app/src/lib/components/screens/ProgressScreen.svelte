@@ -1,4 +1,6 @@
 <script>
+    import { appState, navigateTo, navigateBack, wsConnection } from '$lib/stores/appStore.js';
+    import { onMount } from 'svelte';
     import CarouselLite from '$lib/components/CarouselLite.svelte';
     
     const images = [

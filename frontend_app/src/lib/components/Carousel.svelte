@@ -25,6 +25,7 @@
     // State variables
     let carousel;
     let carouselItems = [];
+    let observer = null;
     let cardHeight = 0;
     let isDragging = false;
     let isResetting = false;
@@ -238,7 +239,7 @@
         updatePositions(displayIndex, 0, true);
         
         // Set up resize observer
-        const observer = new ResizeObserver(() => {
+        observer = new ResizeObserver(() => {
           if (carouselItems.length > 0) {
             const newHeight = carouselItems[0].offsetHeight;
             if (newHeight > 0 && newHeight !== cardHeight) {
@@ -249,9 +250,13 @@
         });
         
         observer.observe(carousel);
-        return () => observer.disconnect();
       }
     });
+       
+    onDestroy(() => {
+      observer.disconnect();
+    });
+
   </script>
   
   <div class="carousel-container">

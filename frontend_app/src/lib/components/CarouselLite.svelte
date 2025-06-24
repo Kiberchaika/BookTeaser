@@ -17,7 +17,6 @@
     export let scaleRatio = 0.85;
     export let opacityRatio = 0.7;
     export let zOffset = 50;
-    export let swipeThreshold = 100;
     export let autoPlayInterval = 5000; // 3 seconds between slides
     export let autoPlay = true;
   
@@ -27,6 +26,7 @@
     // State variables
     let carousel;
     let carouselItems = [];
+    let observer = null;
     let cardHeight = 0;
     let isResetting = false;
     let displayIndex;
@@ -196,7 +196,7 @@
         startAutoPlay();
         
         // Set up resize observer
-        const observer = new ResizeObserver(() => {
+        observer = new ResizeObserver(() => {
           if (carouselItems.length > 0) {
             const newHeight = carouselItems[0].offsetHeight;
             if (newHeight > 0 && newHeight !== cardHeight) {
@@ -207,15 +207,12 @@
         });
         
         observer.observe(carousel);
-        return () => {
-          observer.disconnect();
-          stopAutoPlay();
-        };
       }
     });
   
     // Cleanup on component destruction
     onDestroy(() => {
+      observer.disconnect();
       stopAutoPlay();
     });
   </script>

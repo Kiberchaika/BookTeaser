@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { appState, initWebSocket, wsConnection } from '$lib/stores/appStore.js';
+    import { initializeCanvases } from '$lib/stores/faceDetectionStore.js';
     import DebugPanel from '$lib/components/DebugPanel.svelte';
     import TransitionWrapper from '$lib/components/TransitionWrapper.svelte';
     import '$lib/styles/global.css';
@@ -55,6 +56,9 @@
 
         // Load face detection models
         loadFaceDetectionModels();
+
+        // Init canvases
+        initializeCanvases();
         
         // Initialize WebSocket connection
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

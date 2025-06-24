@@ -1,8 +1,8 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as faceapi from 'face-api.js';
-    import { faceDetectionState, loadFaceDetectionModels } from '$lib/stores/faceDetectionStore';
-  
+    import { faceDetectionState, loadFaceDetectionModels, detectionCanvas, detectionCtx, cropCanvas, cropCtx } from '$lib/stores/faceDetectionStore';
+
     const dispatch = createEventDispatcher();
     // State variables
     let webcamRef;
@@ -20,14 +20,20 @@
     let modelError = null;
     
     // Export method to stop webcam
-    export function stopWebcam() {
+    export async function stopWebcam() {
         isStopped = true;
+  
         if (detectionFrameId) {
             cancelAnimationFrame(detectionFrameId);
-        }
-        if (renderFrameId) {//
+                    }
+        if (renderFrameId) { 
             cancelAnimationFrame(renderFrameId);
         }
+  
+        while (isDetectionRunning) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
@@ -37,7 +43,7 @@
     const unsubscribe = faceDetectionState.subscribe(state => {
       isModelLoaded = state.isLoaded;
       modelError = state.error;
-      
+     
       if (state.isLoaded && isVideoReady) {
         // Start face detection when models are loaded and video is ready
         startFaceDetection();
@@ -61,6 +67,7 @@
     let canvasHeight = canvasWidth;  // Will be adjusted based on video dimensions
     
     onMount(async () => {
+
       // Set up webcam first
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -86,15 +93,20 @@
       // Load face detection models from the store
       debugInfo = "Loading models...";
       await loadFaceDetectionModels();
-      
-      return () => {
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-        unsubscribe(); // Clean up subscription
-      };
     });
-    
+
+        
+    onDestroy(async () => {
+      await stopWebcam();
+
+      currentDetections = [];
+      webcamRef = null;
+      canvasRef = null;
+      
+      // Clean up subscription
+      unsubscribe(); 
+    });
+
     // Handle video being ready
     function handleVideoReady() {
       isVideoReady = true;
@@ -121,6 +133,8 @@
       debugInfo = "Starting face detection...";
       detectFaces();
     }
+    
+
     
     // Start separate render loop
     function startRenderLoop() {
@@ -358,7 +372,7 @@
 
         // Create a square crop of the face
         let faceCrop = null;
-        if (closestFace && canvasRef) {
+        if (closestFace && canvasRef && $cropCanvas && $cropCtx) {
             const box = closestFace.box;
             const size = Math.max(box.width, box.height) * 1.5; // Increased by 50%
             // Adjust x coordinate for flipped image
@@ -366,20 +380,20 @@
             const x = Math.max(0, flippedX - (size - box.width) / 2);
             const y = Math.max(0, box.y - (size - box.height) / 2);
             
-            // Create temporary canvas for cropping
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = size;
-            tempCanvas.height = size;
-            const tempCtx = tempCanvas.getContext('2d');
-            
+            if ($cropCanvas.width !== size || $cropCanvas.height !== size) {
+              $cropCanvas.width = size;
+              $cropCanvas.height = size;
+            }
+
             // Draw the cropped face
-            tempCtx.drawImage(
-                canvasRef,
-                x, y - CROP_PIXELS, size, size,  // Source rectangle
-                0, 0, size, size   // Destination rectangle
+            $cropCtx.clearRect(0, 0, size, size);
+            $cropCtx.drawImage(
+              canvasRef,
+              x, y - CROP_PIXELS, size, size, // Source rectangle
+              0, 0, size, size  // Destination rectangle
             );
             
-            faceCrop = tempCanvas;
+            faceCrop = $cropCtx;
         }
 
         return {
@@ -391,16 +405,18 @@
     
     // Face detection function - runs at limited FPS
     async function detectFaces() {
-      if (isStopped || !webcamRef || !isModelLoaded || !isVideoReady) {
-        detectionFrameId = requestAnimationFrame(detectFaces);
+      
+      if (isStopped || !webcamRef || !isModelLoaded || !isVideoReady || isDetectionRunning) {
         return;
       }
-      
-      if (isDetectionRunning) {
-        detectionFrameId = requestAnimationFrame(detectFaces);
+
+      // Double-check models are loaded before detection
+      if (!faceapi.nets.ssdMobilenetv1.isLoaded || !faceapi.nets.faceLandmark68Net.isLoaded) {
+        console.warn("Models not loaded yet, skipping detection");
         return;
       }
-      
+
+
       // Apply FPS limiting
       const now = performance.now();
       const elapsed = now - lastDetectionTime;
@@ -427,40 +443,44 @@
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
         
-        // Create a temporary canvas for detection with rotated dimensions
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        
         // Set dimensions for detection (swap width/height for rotation)
-        tempCanvas.width = canvasWidth * DETECTION_SCALE;
-        tempCanvas.height = (canvasWidth * (videoWidth / videoHeight)) * DETECTION_SCALE;
+        const newWidth = canvasWidth * DETECTION_SCALE;
+        const newHeight = (canvasWidth * (videoWidth / videoHeight)) * DETECTION_SCALE;
         
-        // Draw rotated video to temp canvas
-        tempCtx.translate(tempCanvas.width/2, tempCanvas.height/2);
-        tempCtx.rotate(ROTATION_ANGLE * Math.PI / 180);
-        tempCtx.translate(-tempCanvas.height/2, -tempCanvas.width/2);
+        if ($detectionCanvas.width !== newWidth || $detectionCanvas.height !== newHeight) {
+          $detectionCanvas.width = newWidth;
+          $detectionCanvas.height = newHeight;
+        }
+       
+        // Очистить canvas
+        $detectionCtx.clearRect(0, 0, $detectionCanvas.width, $detectionCanvas.height);
         
-        // Draw scaled down version of video to temp canvas
-        const scale = Math.max(tempCanvas.height / videoWidth, tempCanvas.width / videoHeight);
+        // Настроить трансформации
+        $detectionCtx.save();
+        $detectionCtx.translate($detectionCanvas.width/2, $detectionCanvas.height/2);
+        $detectionCtx.rotate(ROTATION_ANGLE * Math.PI / 180);
+        $detectionCtx.translate(-$detectionCanvas.height/2, -$detectionCanvas.width/2);
+        
+        // Нарисовать видео
+        const scale = Math.max($detectionCanvas.height / videoWidth, $detectionCanvas.width / videoHeight);
         const scaledWidth = videoWidth * scale;
         const scaledHeight = videoHeight * scale;
-        const x = (tempCanvas.height - scaledWidth) / 2;
-        const y = (tempCanvas.width - scaledHeight) / 2;
+        const x = ($detectionCanvas.height - scaledWidth) / 2;
+        const y = ($detectionCanvas.width - scaledHeight) / 2;
         
-        tempCtx.drawImage(video, x, y, scaledWidth, scaledHeight);
+        $detectionCtx.drawImage(video, x, y, scaledWidth, scaledHeight);
+        $detectionCtx.restore();
         
-        // Double-check models are loaded before detection
-        if (!faceapi.nets.ssdMobilenetv1.isLoaded || !faceapi.nets.faceLandmark68Net.isLoaded) {
-          console.warn("Models not loaded yet, skipping detection");
-          isDetectionRunning = false;
-          detectionFrameId = requestAnimationFrame(detectFaces);
-          return;
-        }
-        
+
         // Detect faces with landmarks on the smaller canvas
-        const detections = await faceapi.detectAllFaces(tempCanvas).withFaceLandmarks();
+        const detections = await faceapi.detectAllFaces($detectionCanvas).withFaceLandmarks() ;
+
         faceCount = detections.length;
         
+        if (faceapi.tf && faceapi.tf.getBackend() === 'webgl') {
+          await faceapi.tf.ready();
+        }
+
         // Scale the detections back to original size
         const scaledDetections = detections.map(detection => {
           // Scale the detection box
@@ -485,6 +505,9 @@
           };
         });
         
+ 
+
+
         // Update the current detections for rendering
         currentDetections = scaledDetections;
         
@@ -495,34 +518,21 @@
         if (scaledDetections.length === 0) {
           debugInfo = "No faces detected";
         } else {
-          debugInfo = `${scaledDetections.length} faces detected (processing at ${Math.round(tempCanvas.width)}x${Math.round(tempCanvas.height)}, ${FPS_LIMIT} FPS)${hasFaceNearCenter ? ' - Face near center!' : ''}`;
+          debugInfo = `${scaledDetections.length} faces detected (processing at ${Math.round($detectionCanvas.width)}x${Math.round($detectionCanvas.height)}, ${FPS_LIMIT} FPS)${hasFaceNearCenter ? ' - Face near center!' : ''}`;
         }
         
-        // Clean up temp canvas
-        tempCanvas.remove();
+        
       } catch (error) {
         console.error("Error in face detection:", error);
         debugInfo = `Error in detection: ${error}`;
       } finally {
+
+       
         isDetectionRunning = false;
         // Continue detection loop
         detectionFrameId = requestAnimationFrame(detectFaces);
       }
     }
-    
-    onDestroy(() => {
-      if (detectionFrameId) {
-        cancelAnimationFrame(detectionFrameId);
-      }
-      
-      if (renderFrameId) {
-        cancelAnimationFrame(renderFrameId);
-      }
-      
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    });
 
     // Update the hasFaceNearCenter state and dispatch event
     $: {
