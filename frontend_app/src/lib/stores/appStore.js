@@ -22,6 +22,7 @@ export const navigationHistory = writable([]);
 
 // Function to navigate to a new screen
 export function navigateTo(screen) {
+    console.log('Navigating to screen:', screen);
     appState.update(state => {
         navigationHistory.update(history => [...history, state.currentScreen]);
         return { ...state, currentScreen: screen };
@@ -111,6 +112,7 @@ function connectWebSocket() {
                     }
                 } else if (data.status === 'error') {
                     navigateTo('welcome');
+
                     console.error('Error message received:', data.message);
                 }
             } catch (error) {
