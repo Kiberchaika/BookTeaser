@@ -22,8 +22,8 @@
     $: progressCircularStyle = currentState === 2 ? '' : 'display: none;';
     $: backgroundImageStyle = `background-image: url('screens/camera/text${currentState + 1}.png');`;
     $: characterIconSrc = $appState.userSettings.gender === 'female' 
-        ? `screens/selectionWoman/${$appState.userSettings.character}.png`
-        : `screens/selectionMan/${$appState.userSettings.character}.png`;
+        ? `screens/selection/${$appState.userSettings.character}.png`
+        : `screens/selection/${$appState.userSettings.character}.png`;
     
     // Start counter when currentState becomes 1
     $: if (currentState === 1 && counterComponent) {
@@ -53,6 +53,12 @@
     }
     
     onMount(() => {
+        /*
+        setTimeout(() => {
+            navigateTo('progress');
+        }, 900);
+        */
+
         return () => {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
@@ -73,7 +79,7 @@
                 const dataUrl = faceCrop.toDataURL('image/jpeg', 0.95);
                 
 
-                 
+ 
                 // Create a download link
                 const link = document.createElement('a');
                 link.download = `face_capture_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`;
@@ -130,15 +136,15 @@
         navigateTo('camera');
     }
 
-    function handleWomanClick() {
+    function handleStopClick() {
         appState.update(state => ({
             ...state,
             userSettings: {
                 ...state.userSettings,
-                gender: "female"
+                gender: ""
             }
         }));
-        navigateTo('scene-selection-woman');
+        navigateTo('scene-selection');
     }
 
     function animateCircularProgress() {
@@ -154,7 +160,7 @@
             } else {
                 // if screen is not welcome, navigate to welcome
                 if ($appState.currentScreen === 'camera') {
-                    navigateTo('progress');
+                navigateTo('progress');
                 }
             }
         }
@@ -207,7 +213,7 @@
         <div class="progress-circular-container" style={progressCircularStyle}>
             <CircularProgressBar progress={circularProgress} size={450} strokeWidth={95} />
         </div>
-        <button class="stop-btn" style={stopBtnStyle} on:click={handleWomanClick}></button>
+        <button class="stop-btn" style={stopBtnStyle} on:click={handleStopClick}></button>
         <div class="progress-container">
             <CircleLinearProgressBar progress={progress} />
         </div>

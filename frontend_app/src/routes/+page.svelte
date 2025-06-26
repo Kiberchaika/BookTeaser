@@ -11,9 +11,7 @@
 
     // Import screen components
     import WelcomeScreen from '$lib/components/screens/WelcomeScreen.svelte';
-    import SceneSelectionManScreen from '$lib/components/screens/SceneSelectionManScreen.svelte';
-    import SceneSelectionWomanScreen from '$lib/components/screens/SceneSelectionWomanScreen.svelte';
-    import SceneSelectionScreen from '$lib/components/screens/SceneSelectionManScreen.svelte';
+    import SceneSelectionScreen from '$lib/components/screens/SceneSelectionScreen.svelte';
     import CameraScreen from '$lib/components/screens/CameraScreen.svelte';
     import ProgressScreen from '$lib/components/screens/ProgressScreen.svelte';
     import ResultScreen from '$lib/components/screens/ResultScreen.svelte';
@@ -25,8 +23,7 @@
     const screens = {
         'blank': BlankScreen,
         'welcome': WelcomeScreen,
-        'scene-selection-man': SceneSelectionManScreen,
-        'scene-selection-woman': SceneSelectionWomanScreen,
+        'scene-selection': SceneSelectionScreen,
         'camera': CameraScreen,
         'progress': ProgressScreen,
         'result': ResultScreen

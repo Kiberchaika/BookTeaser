@@ -8,6 +8,16 @@
         { id: 2, src: 'screens/progress/text2.png' },
         { id: 3, src: 'screens/progress/text3.png' }
     ];
+    
+    onMount(() => {
+        /*
+        setTimeout(() => {
+            navigateTo('camera');
+        }, 900);
+        */
+    });
+
+
 </script>
 
 <div class="screen-container">

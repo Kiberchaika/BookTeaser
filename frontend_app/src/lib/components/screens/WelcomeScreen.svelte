@@ -2,27 +2,17 @@
     // Add any component logic here
     import { navigateTo, appState } from '$lib/stores/appStore.js';
     
-    function handleMaleClick() {
+    function handleNextClick() {
         appState.update(state => ({
             ...state,
             userSettings: {
                 ...state.userSettings,
-                gender: "male"
+                gender: ""
             }
         }));
-        navigateTo('scene-selection-man');
+        navigateTo('scene-selection');
     }
 
-    function handleFemaleClick() {
-        appState.update(state => ({
-            ...state,
-            userSettings: {
-                ...state.userSettings,
-                gender: "female"
-            }
-        }));
-        navigateTo('scene-selection-woman');
-    }
 </script>
 
 <div class="screen-container">
@@ -32,8 +22,7 @@
     <div class="background-image"></div>
     <div class="content">
         <div class="button-container">
-            <button class="man-btn" on:click={handleMaleClick}></button>
-            <button class="woman-btn" on:click={handleFemaleClick}></button>
+            <button class="next-btn" on:click={handleNextClick}></button>
         </div>
     </div>
 </div>
@@ -67,11 +56,11 @@
         background-position: center;
         z-index: 1;
     }
-    
-    .man-btn {
-        width: 711px;
-        height: 197px;
-        background-image: url('screens/welcome/man.png');
+     
+    .next-btn {
+        width: 1121px;
+        height: 231px;
+        background-image: url('screens/welcome/next.png');
         background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
@@ -83,26 +72,7 @@
         transition: transform 0.1s ease-in-out;
     }
     
-    .man-btn:active {
-        transform: scale(0.95);
-    }
-    
-    .woman-btn {
-        width: 711px;
-        height: 197px;
-        background-image: url('screens/welcome/woman.png');
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-        border: none;
-        background-color: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        cursor: pointer;
-        border-radius: 60.75px;
-        transition: transform 0.1s ease-in-out;
-    }
-    
-    .woman-btn:active {
+    .next:active {
         transform: scale(0.95);
     }
     
