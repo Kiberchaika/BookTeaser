@@ -7,10 +7,13 @@ import numpy as np
 # Set GPU 1 as visible
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+import sys
+sys.path.append("server_app/facefusion")
+
 from inference_threaded import (
     download_all_models,
     initialize_sessions_and_globals,
-    get_face_embedding,
+    get_source_face_embedding,
     perform_face_swap_video_threaded
 )
 
@@ -75,7 +78,7 @@ def process_video(video_input, image_input, num_threads=4, progress=gr.Progress(
     
     # Get face embedding from source image
     progress(0.1, desc="Обнаружение лица в исходном изображении...")
-    source_embedding = get_face_embedding(source_img_bgr)
+    source_embedding = get_source_face_embedding(source_img_bgr)
     if source_embedding is None:
         return None, "Лицо не обнаружено в исходном изображении"
     

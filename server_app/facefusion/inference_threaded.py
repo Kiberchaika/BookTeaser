@@ -986,8 +986,9 @@ def perform_face_swap_video_threaded(source_arcface_embedding, target_video_path
         saved_frames_check = [f for f in os.listdir(actual_temp_dir) if f.startswith('frame_') and f.endswith('.jpg')]
         if not saved_frames_check: 
             print(f"Error: No frames in {actual_temp_dir}."); 
-        if progress_callback: 
-            progress_callback(0.8, "Error: No frames."); return False
+            if progress_callback: 
+                progress_callback(0.8, "Error: No frames."); 
+            return False
 
         codec = 'libx264'; pix_fmt = 'yuv420p'
         ffmpeg_cmd = ['ffmpeg', '-y', '-framerate', str(fps if fps > 0 else 25), '-i', input_pattern,
@@ -1004,7 +1005,8 @@ def perform_face_swap_video_threaded(source_arcface_embedding, target_video_path
             if progress_callback: progress_callback(0.9, f"FFMPEG Error: {e.returncode}")
             return False
     finally:
-        if video.isOpened(): video.release()
+        if video.isOpened(): 
+            video.release()
         if actual_temp_dir and os.path.exists(actual_temp_dir) and temp_dir_base is None: # only remove if we created it fully
             print(f"Cleaning up temporary directory: {actual_temp_dir}")
             shutil.rmtree(actual_temp_dir)
