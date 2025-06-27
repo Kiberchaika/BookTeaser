@@ -27,6 +27,11 @@
   "/screens/result/screen.png",
   "/screens/result/text.png",
   "/screens/result/video.mp4",
+  "/screens/selection/assol.png",
+  "/screens/selection/background.mp4",
+  "/screens/selection/grey.png",
+  "/screens/selection/screen.png",
+  "/screens/selection/text.png",
   "/screens/selectionMan/background.mp4",
   "/screens/selectionMan/dartanyan.png",
   "/screens/selectionMan/don_kihot.png",
@@ -43,7 +48,9 @@
   "/screens/selectionWoman/text.png",
   "/screens/welcome/background.mp4",
   "/screens/welcome/man.png",
+  "/screens/welcome/next.png",
   "/screens/welcome/screen.png",
   "/screens/welcome/text.png",
+  "/screens/welcome/text_.png",
   "/screens/welcome/woman.png"
 ]

@@ -2,8 +2,14 @@ import os
 import time
 import requests
 from datetime import datetime
-import msvcrt  # For Windows file locking check
 from pathlib import Path
+import platform
+
+# Cross-platform imports for file locking
+if platform.system() == 'Windows':
+    import msvcrt
+else:
+    import fcntl
 
 class FileUploader:
     def __init__(self, storage_path="storage", upload_list_file="uploaded_files.txt", server_url="http://81.94.158.96:7781"):
@@ -11,6 +17,7 @@ class FileUploader:
         self.upload_list_file = Path(upload_list_file)
         self.server_url = server_url
         self.uploaded_files = set()
+        self.is_windows = platform.system() == 'Windows'
         
         # Create storage directory if it doesn't exist
         self.storage_path.mkdir(exist_ok=True)
@@ -31,16 +38,26 @@ class FileUploader:
         self.uploaded_files.add(filename)
 
     def is_file_locked(self, filepath):
-        """Check if file is locked/opened by another process."""
+        """Check if file is locked/opened by another process (cross-platform)."""
         try:
             with open(filepath, 'rb') as f:
-                try:
-                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
-                    return False
-                except IOError:
-                    return True
-        except IOError:
+                if self.is_windows:
+                    # Windows file locking using msvcrt
+                    try:
+                        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                        return False
+                    except IOError:
+                        return True
+                else:
+                    # Unix/Linux file locking using fcntl
+                    try:
+                        fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                        return False
+                    except (IOError, OSError):
+                        return True
+        except (IOError, OSError):
             return True
 
     def get_files_sorted_by_modified_date(self):
@@ -56,7 +73,7 @@ class FileUploader:
         try:
             with open(filepath, 'rb') as f:
                 files = {'video': f}
-                response = requests.post(f"{self.server_url}/upload", files=files)
+                response = requests.post(f"{self.server_url}/upload", files=files, timeout=30)
                 if response.status_code == 200:
                     print(f"Successfully uploaded {filepath}")
                     self.save_uploaded_file(filepath.name)
@@ -64,13 +81,16 @@ class FileUploader:
                 else:
                     print(f"Failed to upload {filepath}. Status code: {response.status_code}")
                     return False
+        except requests.exceptions.RequestException as e:
+            print(f"Network error uploading {filepath}: {str(e)}")
+            return False
         except Exception as e:
             print(f"Error uploading {filepath}: {str(e)}")
             return False
 
     def run(self):
         """Main loop to check and upload files."""
-        print(f"Starting file uploader. Monitoring directory: {self.storage_path}")
+        print(f"Starting file uploader on {platform.system()}. Monitoring directory: {self.storage_path}")
         print(f"Uploading to server: {self.server_url}")
         
         while True:
@@ -82,12 +102,18 @@ class FileUploader:
                         print(f"Found new file to upload: {file}")
                         
                         if not self.is_file_locked(file):
-                            self.upload_file(file)
+                            if self.upload_file(file):
+                                print(f"Upload completed for {file}")
+                            else:
+                                print(f"Upload failed for {file}")
                         else:
                             print(f"File {file} is currently in use, skipping...")
                 
                 time.sleep(5)  # Wait for 5 seconds before next check
                 
+            except KeyboardInterrupt:
+                print("\nShutting down file uploader...")
+                break
             except Exception as e:
                 print(f"Error in main loop: {str(e)}")
                 time.sleep(5)  # Wait before retrying

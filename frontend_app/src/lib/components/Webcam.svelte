@@ -393,7 +393,7 @@
               0, 0, size, size  // Destination rectangle
             );
             
-            faceCrop = $cropCtx;
+            faceCrop = $cropCanvas;
         }
 
         return {
