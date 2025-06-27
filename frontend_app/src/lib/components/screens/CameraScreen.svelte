@@ -77,8 +77,6 @@
             try {
                 // Convert canvas to data URL
                 const dataUrl = faceCrop.toDataURL('image/jpeg', 0.95);
-                
-
  
                 // Create a download link
                 const link = document.createElement('a');
