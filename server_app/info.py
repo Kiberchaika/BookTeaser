@@ -7,6 +7,70 @@ shapes = {
 }
 
 characters = {
+    "assol": {
+        "folder": "Ассоль",
+        "swapper": "inswapper",
+        "scenes": {
+            1: {
+                "replace_face": False
+            },
+            2: {
+                "replace_face": False
+            },
+            3: {
+                "replace_face": True,
+                "protect_eyes": False
+            },
+            4: {
+                "replace_face": False
+            },
+            5: {
+                "replace_face": False
+            },
+            8: {
+                "replace_face": True,
+                "protect_eyes": False
+            },
+        }
+    },
+    "grey": {
+        "folder": "Артур Грей",
+        "swapper": "inswapper",
+        "scenes": {
+            1: {
+                "replace_face": False
+            },
+            2: {
+                "replace_face": False
+            },
+            3: {
+                "replace_face": True,
+                "protect_eyes": False
+            },
+            4: {
+                "replace_face": False
+            },
+            5: {
+                "replace_face": True,
+                "protect_eyes": False
+            },
+            7: {
+                "replace_face": True,
+                "protect_eyes": False
+            },
+            8: {
+                "replace_face": False
+            },
+            9: {
+                "replace_face": False
+            },
+            10: {
+                "replace_face": False
+            },
+        }
+    },
+
+    
     "dartanyan": {
         "folder": "ДʼАртаньян",
         "swapper": "inswapper",
