@@ -27,9 +27,28 @@ characters = {
             5: {
                 "replace_face": False
             },
+            6: {
+                "replace_face": False
+            },
+            7: {
+                "replace_face": False
+            },
             8: {
                 "replace_face": True,
                 "protect_eyes": False
+            },
+            9: {
+                "replace_face": False
+            },
+            10: {
+                "replace_face": True,
+                "protect_eyes": False
+            },
+            11: {
+                "replace_face": False
+            },
+            12: {
+                "replace_face": False
             },
         }
     },
@@ -54,6 +73,9 @@ characters = {
                 "replace_face": True,
                 "protect_eyes": False
             },
+            6: {
+                "replace_face": False
+            },
             7: {
                 "replace_face": True,
                 "protect_eyes": False
@@ -67,7 +89,13 @@ characters = {
             10: {
                 "replace_face": False
             },
-        }
+            11: {
+                "replace_face": False
+            },
+            12: {
+                "replace_face": False
+            },
+       }
     },
 
     
