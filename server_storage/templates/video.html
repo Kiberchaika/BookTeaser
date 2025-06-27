@@ -33,18 +33,44 @@
             margin-top: 10px;
         }
         .error-message {
-            color: #721c24;
-            background-color: #f8d7da;
+            color: #856404;
+            background-color: #fff3cd;
             padding: 15px;
             border-radius: 5px;
             margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .loading-clock {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #856404;
+            border-radius: 50%;
+            border-top: 3px solid transparent;
+            animation: spin 2s linear infinite;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .error-content {
+            flex: 1;
+        }
+        .error-content p {
+            margin: 0 0 10px 0;
+        }
+        .error-content p:last-child {
+            margin-bottom: 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Ваше видео</h1>
-        
+       
         {% if video_exists %}
             <video controls>
                 <source src="{{ url_for('download_video', filename=filename) }}" type="video/mp4">
@@ -55,11 +81,14 @@
             </div>
         {% else %}
             <div class="error-message">
-                <p>Извините, запрошенное видео ещё загружается, зайдите позже.</p>
-                <p>Сохраните ссылку на эту страницу, чтобы получить видео: <p>
-                </p><a href="{{ request.url }}">{{ request.url }}</a></p>
+                <div class="loading-clock"></div>
+                <div class="error-content">
+                    <p>Извините, запрошенное видео ещё загружается. Зайдите позже.</p>
+                    <p>Сохраните ссылку на эту страницу, чтобы получить видео:</p>
+                    <p><a href="{{ request.url }}">{{ request.url }}</a></p>
+                </div>
             </div>
         {% endif %}
     </div>
 </body>
-</html> 
+</html>

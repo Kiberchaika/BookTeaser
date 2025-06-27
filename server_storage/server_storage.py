@@ -4,7 +4,7 @@ import os
 app = Flask(__name__)
 
 # Configure upload folder
-UPLOAD_FOLDER = '/mnt/datasets'
+UPLOAD_FOLDER = '/mnt/datasets/bookteaser'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
