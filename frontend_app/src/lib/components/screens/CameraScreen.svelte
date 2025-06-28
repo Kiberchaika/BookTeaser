@@ -357,7 +357,9 @@
 
     .webcam-container {
         position: absolute;
+        transform: translate(-50%, 100%);
         top: 0px;
+        left: 50%;
     }
 
     .progress-container {
