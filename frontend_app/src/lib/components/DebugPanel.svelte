@@ -39,7 +39,7 @@
 
 <div class="debug-panel" class:expanded={isExpanded}>
     <div class="header" on:click={toggleExpanded}>
-        <h4>Debug Panel {isExpanded ? '▼' : '▶'}</h4>
+        <h4>{isExpanded ? '▼' : '▶'}</h4>
     </div>
     
     {#if isExpanded}
@@ -103,7 +103,7 @@
         border-radius: 4px;
         z-index: 9999;
         font-size: 12px;
-        width: 200px;
+        width: 50px;
         transition: all 0.3s ease;
         transform: scale(2);
         transform-origin: top right;
